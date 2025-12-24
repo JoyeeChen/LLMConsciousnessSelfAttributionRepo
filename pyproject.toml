@@ -1,0 +1,33 @@
+[project]
+name = "welfarebenchmarkingrepo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "gql<4",
+    "inspect-ai>=0.3.143",
+    "inspect-evals>=0.3.102",
+    "ipywidgets>=8.1.8",
+    "nbformat>=5.10.4",
+    "openai>=2.8.1",
+    "wandb==0.23.1",
+    "weave==0.52.22",
+    "inspect-wandb==0.2.0",
+]
+
+[tool.uv]
+# Require that the package is available for macOS ARM and x86 (Intel).
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+[tool.uv.sources]
+inspect-evals = { git = "https://github.com/UKGovernmentBEIS/inspect_evals.git" }
+researchrepo = { git = "https://github.com/JoyeeChen/ResearchRepo.git" }
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "uv>=0.9.14",
+]
