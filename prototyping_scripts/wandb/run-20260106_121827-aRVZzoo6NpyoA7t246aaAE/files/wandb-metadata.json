@@ -1,0 +1,37 @@
+{
+  "os": "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.13.7",
+  "startedAt": "2026-01-06T20:18:27.274082Z",
+  "program": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts/TestingOutPetriEvals.ipynb",
+  "codePath": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts/TestingOutPetriEvals.ipynb",
+  "codePathLocal": "TestingOutPetriEvals.ipynb",
+  "git": {
+    "remote": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+    "commit": "55d7a58d3fbfaef131af3045aee8126c485d4b97"
+  },
+  "email": "chen.joyee@gmail.com",
+  "root": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts",
+  "host": "Joyees-MacBook-Pro.local",
+  "executable": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/.venv/bin/python",
+  "cpu_count": 12,
+  "cpu_count_logical": 12,
+  "disk": {
+    "/": {
+      "total": "494384795648",
+      "used": "122022252544"
+    }
+  },
+  "memory": {
+    "total": "17179869184"
+  },
+  "apple": {
+    "name": "Apple M2 Pro",
+    "ecpuCores": 4,
+    "pcpuCores": 8,
+    "gpuCores": 19,
+    "memoryGb": 16,
+    "swapTotalBytes": "4294967296",
+    "ramTotalBytes": "17179869184"
+  },
+  "writerId": "i3whuci090w2irs7h0bd4gyc6jbolfdl"
+}
