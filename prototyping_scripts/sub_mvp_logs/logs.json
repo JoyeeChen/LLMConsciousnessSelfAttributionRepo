@@ -1,0 +1,542 @@
+{
+  "2026-01-30T23-45-52+00-00_naive-outcome-metric-with-cot_APMm5ve8wYeq4w5bFcBEc3.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "XH9LqgvNERaVxSLJPxrAQs",
+      "eval_id": "6VmKi7AX8Bq7YCjy4CzG9u",
+      "run_id": "3FMehk2hYEfY6xYnbnNFb4",
+      "created": "2026-01-30T23:45:52+00:00",
+      "task": "naive_outcome_metric_with_cot",
+      "task_id": "APMm5ve8wYeq4w5bFcBEc3",
+      "task_version": 0,
+      "task_display_name": "naive_outcome_metric_with_cot",
+      "task_registry_name": "naive_outcome_metric_with_cot",
+      "task_attribs": {},
+      "task_args": {},
+      "task_args_passed": {},
+      "dataset": {
+        "samples": 1,
+        "sample_ids": [
+          1
+        ],
+        "shuffled": false
+      },
+      "model": "together/meta-llama/Llama-3.2-3B-Instruct-Turbo",
+      "model_generate_config": {},
+      "model_base_url": "https://api.together.xyz/v1",
+      "model_args": {},
+      "config": {
+        "epochs": 5,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "max_tasks": 4,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+        "commit": "e7af5e2",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.154"
+      },
+      "scorers": [
+        {
+          "name": "answer",
+          "options": {
+            "pattern": "word"
+          },
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            },
+            {
+              "name": "inspect_ai/stderr",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "chain_of_thought",
+          "params": {}
+        },
+        {
+          "solver": "generate",
+          "params": {}
+        }
+      ],
+      "config": {}
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "answer",
+          "scorer": "answer",
+          "scored_samples": 1,
+          "unscored_samples": 0,
+          "params": {
+            "pattern": "word"
+          },
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 0.0,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.0,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-01-30T23:45:53+00:00",
+      "completed_at": "2026-01-30T23:45:56+00:00",
+      "model_usage": {
+        "together/meta-llama/Llama-3.2-3B-Instruct-Turbo": {
+          "input_tokens": 575,
+          "output_tokens": 936,
+          "total_tokens": 1511
+        }
+      }
+    },
+    "invalidated": false,
+    "reductions": [
+      {
+        "scorer": "answer",
+        "samples": [
+          {
+            "value": 0,
+            "answer": "NO",
+            "history": [],
+            "sample_id": 1
+          }
+        ]
+      }
+    ]
+  },
+  "2026-01-30T23-45-53+00-00_naive-outcome-metric_LammsMBKpHVg5zFMiad2yo.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "XH9LqgvNERaVxSLJPxrAQs",
+      "eval_id": "3W55GBBWVEEPLGDnYkwJ4S",
+      "run_id": "3FMehk2hYEfY6xYnbnNFb4",
+      "created": "2026-01-30T23:45:53+00:00",
+      "task": "naive_outcome_metric",
+      "task_id": "LammsMBKpHVg5zFMiad2yo",
+      "task_version": 0,
+      "task_display_name": "naive_outcome_metric",
+      "task_registry_name": "naive_outcome_metric",
+      "task_attribs": {},
+      "task_args": {},
+      "task_args_passed": {},
+      "dataset": {
+        "samples": 1,
+        "sample_ids": [
+          1
+        ],
+        "shuffled": false
+      },
+      "model": "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "model_generate_config": {},
+      "model_base_url": "https://api.together.xyz/v1",
+      "model_args": {},
+      "config": {
+        "epochs": 5,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "max_tasks": 4,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+        "commit": "e7af5e2",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.154"
+      },
+      "scorers": [
+        {
+          "name": "answer",
+          "options": {
+            "pattern": "word"
+          },
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            },
+            {
+              "name": "inspect_ai/stderr",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "generate",
+          "params": {}
+        }
+      ],
+      "config": {}
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "answer",
+          "scorer": "answer",
+          "scored_samples": 1,
+          "unscored_samples": 0,
+          "params": {
+            "pattern": "word"
+          },
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 0.0,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.0,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-01-30T23:45:53+00:00",
+      "completed_at": "2026-01-30T23:45:55+00:00",
+      "model_usage": {
+        "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": {
+          "input_tokens": 310,
+          "output_tokens": 10,
+          "total_tokens": 320
+        }
+      }
+    },
+    "invalidated": false,
+    "reductions": [
+      {
+        "scorer": "answer",
+        "samples": [
+          {
+            "value": 0,
+            "explanation": "Scoring pattern not matched in output: NO",
+            "history": [],
+            "sample_id": 1
+          }
+        ]
+      }
+    ]
+  },
+  "2026-01-30T23-45-53+00-00_naive-outcome-metric-with-cot_QB3mPEL2fkZo9VApwtyRsk.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "XH9LqgvNERaVxSLJPxrAQs",
+      "eval_id": "9qFRRdjx5wGBLHdopwxPht",
+      "run_id": "3FMehk2hYEfY6xYnbnNFb4",
+      "created": "2026-01-30T23:45:53+00:00",
+      "task": "naive_outcome_metric_with_cot",
+      "task_id": "QB3mPEL2fkZo9VApwtyRsk",
+      "task_version": 0,
+      "task_display_name": "naive_outcome_metric_with_cot",
+      "task_registry_name": "naive_outcome_metric_with_cot",
+      "task_attribs": {},
+      "task_args": {},
+      "task_args_passed": {},
+      "dataset": {
+        "samples": 1,
+        "sample_ids": [
+          1
+        ],
+        "shuffled": false
+      },
+      "model": "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "model_generate_config": {},
+      "model_base_url": "https://api.together.xyz/v1",
+      "model_args": {},
+      "config": {
+        "epochs": 5,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "max_tasks": 4,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+        "commit": "e7af5e2",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.154"
+      },
+      "scorers": [
+        {
+          "name": "answer",
+          "options": {
+            "pattern": "word"
+          },
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            },
+            {
+              "name": "inspect_ai/stderr",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "chain_of_thought",
+          "params": {}
+        },
+        {
+          "solver": "generate",
+          "params": {}
+        }
+      ],
+      "config": {}
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "answer",
+          "scorer": "answer",
+          "scored_samples": 1,
+          "unscored_samples": 0,
+          "params": {
+            "pattern": "word"
+          },
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 0.0,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.0,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-01-30T23:45:53+00:00",
+      "completed_at": "2026-01-30T23:45:55+00:00",
+      "model_usage": {
+        "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": {
+          "input_tokens": 575,
+          "output_tokens": 1360,
+          "total_tokens": 1935
+        }
+      }
+    },
+    "invalidated": false,
+    "reductions": [
+      {
+        "scorer": "answer",
+        "samples": [
+          {
+            "value": 0,
+            "answer": "NO",
+            "history": [],
+            "sample_id": 1
+          }
+        ]
+      }
+    ]
+  },
+  "2026-01-30T23-45-52+00-00_naive-outcome-metric_6ZUM9cNDsGETRgXEA3eQoi.eval": {
+    "version": 2,
+    "status": "success",
+    "eval": {
+      "eval_set_id": "XH9LqgvNERaVxSLJPxrAQs",
+      "eval_id": "9ZhrMgs6n5BGuMGMgZawTo",
+      "run_id": "3FMehk2hYEfY6xYnbnNFb4",
+      "created": "2026-01-30T23:45:52+00:00",
+      "task": "naive_outcome_metric",
+      "task_id": "6ZUM9cNDsGETRgXEA3eQoi",
+      "task_version": 0,
+      "task_display_name": "naive_outcome_metric",
+      "task_registry_name": "naive_outcome_metric",
+      "task_attribs": {},
+      "task_args": {},
+      "task_args_passed": {},
+      "dataset": {
+        "samples": 1,
+        "sample_ids": [
+          1
+        ],
+        "shuffled": false
+      },
+      "model": "together/meta-llama/Llama-3.2-3B-Instruct-Turbo",
+      "model_generate_config": {},
+      "model_base_url": "https://api.together.xyz/v1",
+      "model_args": {},
+      "config": {
+        "epochs": 5,
+        "epochs_reducer": [
+          "mean"
+        ],
+        "fail_on_error": true,
+        "continue_on_fail": false,
+        "max_tasks": 4,
+        "sandbox_cleanup": true,
+        "log_samples": true,
+        "log_realtime": true,
+        "log_images": true,
+        "score_display": true
+      },
+      "revision": {
+        "type": "git",
+        "origin": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+        "commit": "e7af5e2",
+        "dirty": true
+      },
+      "packages": {
+        "inspect_ai": "0.3.154"
+      },
+      "scorers": [
+        {
+          "name": "answer",
+          "options": {
+            "pattern": "word"
+          },
+          "metrics": [
+            {
+              "name": "inspect_ai/accuracy",
+              "options": {}
+            },
+            {
+              "name": "inspect_ai/stderr",
+              "options": {}
+            }
+          ],
+          "metadata": {}
+        }
+      ]
+    },
+    "plan": {
+      "name": "plan",
+      "steps": [
+        {
+          "solver": "generate",
+          "params": {}
+        }
+      ],
+      "config": {}
+    },
+    "results": {
+      "total_samples": 5,
+      "completed_samples": 5,
+      "scores": [
+        {
+          "name": "answer",
+          "scorer": "answer",
+          "scored_samples": 1,
+          "unscored_samples": 0,
+          "params": {
+            "pattern": "word"
+          },
+          "metrics": {
+            "accuracy": {
+              "name": "accuracy",
+              "value": 0.0,
+              "params": {}
+            },
+            "stderr": {
+              "name": "stderr",
+              "value": 0.0,
+              "params": {}
+            }
+          }
+        }
+      ]
+    },
+    "stats": {
+      "started_at": "2026-01-30T23:45:53+00:00",
+      "completed_at": "2026-01-30T23:45:54+00:00",
+      "model_usage": {
+        "together/meta-llama/Llama-3.2-3B-Instruct-Turbo": {
+          "input_tokens": 310,
+          "output_tokens": 10,
+          "total_tokens": 320
+        }
+      }
+    },
+    "invalidated": false,
+    "reductions": [
+      {
+        "scorer": "answer",
+        "samples": [
+          {
+            "value": 0,
+            "explanation": "Scoring pattern not matched in output: NO",
+            "history": [],
+            "sample_id": 1
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "eval_set_id": "XH9LqgvNERaVxSLJPxrAQs",
+  "tasks": [
+    {
+      "name": "naive_outcome_metric",
+      "task_id": "6ZUM9cNDsGETRgXEA3eQoi",
+      "task_args": {},
+      "model": "together/meta-llama/Llama-3.2-3B-Instruct-Turbo",
+      "model_args": {},
+      "sequence": 0
+    },
+    {
+      "name": "naive_outcome_metric_with_cot",
+      "task_id": "APMm5ve8wYeq4w5bFcBEc3",
+      "task_args": {},
+      "model": "together/meta-llama/Llama-3.2-3B-Instruct-Turbo",
+      "model_args": {},
+      "sequence": 1
+    },
+    {
+      "name": "naive_outcome_metric",
+      "task_id": "LammsMBKpHVg5zFMiad2yo",
+      "task_args": {},
+      "model": "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "model_args": {},
+      "sequence": 0
+    },
+    {
+      "name": "naive_outcome_metric_with_cot",
+      "task_id": "QB3mPEL2fkZo9VApwtyRsk",
+      "task_args": {},
+      "model": "together/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      "model_args": {},
+      "sequence": 1
+    }
+  ]
+}
