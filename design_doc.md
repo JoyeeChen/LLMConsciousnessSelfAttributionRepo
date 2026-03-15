@@ -4,6 +4,10 @@ Some of this has been copied from ResearchRepo.
 
 Note: "Tips and Code" shall refer to https://www.alignmentforum.org/posts/6P8GYb4AjtPXx6LLB/tips-and-code-for-empirical-research-workflows and "Apollo" shall refer to Apollo Research's Engineering Guide at https://docs.google.com/document/d/1LJedFJKrGs7vi-xA1ucQQxj_y85Z9x4lEmf4sFgeX6g/edit?tab=t.0
 
+Q: (15 March 2026) Why use OpenRouter as a possible alternative to Together.ai? 
+
+A: Together.ai removes some models from convenient serverlessness over time, introducing friction of needing to spool up endpoints.
+
 Q: (from 15 Jan 2026): What are some pros and cons of prototyping with Colab notebook on web URL itself?
 
 A:     Pros: "very easy to get started" for simple prototyping.
