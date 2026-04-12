@@ -1,0 +1,29 @@
+{
+  "os": "macOS-26.3.1-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.13.7",
+  "startedAt": "2026-04-12T00:19:23.231008Z",
+  "program": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts/BergPaperStyleSelfMonitoring.ipynb",
+  "codePath": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts/BergPaperStyleSelfMonitoring.ipynb",
+  "codePathLocal": "BergPaperStyleSelfMonitoring.ipynb",
+  "git": {
+    "remote": "https://github.com/JoyeeChen/LLMConsciousnessSelfAttributionRepo.git",
+    "commit": "1c102ee45d1cbde93fac14d30c3a9b3d4f274dbb"
+  },
+  "email": "chen.joyee@gmail.com",
+  "root": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/prototyping_scripts",
+  "host": "Mac.localdomain",
+  "executable": "/Users/joyeechen/LLMConsciousnessSelfAttributionRepo/.venv/bin/python",
+  "cpu_count": 12,
+  "cpu_count_logical": 12,
+  "disk": {
+    "/": {
+      "total": "494384795648",
+      "used": "143461326848"
+    }
+  },
+  "memory": {
+    "total": "17179869184"
+  },
+  "apple": {},
+  "writerId": "a7druwj85ew0bfwadjjl8gou0sxze3pe"
+}
