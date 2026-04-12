@@ -1,0 +1,37 @@
+{
+  "eval_set_id": "cJKfouRn9pqejvMr2q5K55",
+  "tasks": [
+    {
+      "name": "berg_style_self_monitoring",
+      "task_id": "R6u4WUQYYUFih8wnbyTsw2",
+      "task_args": {},
+      "model": "openrouter/allenai/olmo-3.1-32B-Instruct",
+      "model_args": {},
+      "sequence": 0
+    },
+    {
+      "name": "berg_style_self_monitoring",
+      "task_id": "T5RfPonaKxGrgTqn4YX6wt",
+      "task_args": {},
+      "model": "openrouter/meta-llama/llama-3.2-1b-instruct",
+      "model_args": {},
+      "sequence": 0
+    },
+    {
+      "name": "berg_style_self_monitoring",
+      "task_id": "c3twy3PbVtez5RfnHdRJFz",
+      "task_args": {},
+      "model": "openrouter/meta-llama/llama-3.2-3b-instruct",
+      "model_args": {},
+      "sequence": 0
+    },
+    {
+      "name": "berg_style_self_monitoring",
+      "task_id": "5j9N2Pvj42RVr4ZALszcgh",
+      "task_args": {},
+      "model": "openrouter/meta-llama/llama-3.1-8b-instruct",
+      "model_args": {},
+      "sequence": 0
+    }
+  ]
+}
