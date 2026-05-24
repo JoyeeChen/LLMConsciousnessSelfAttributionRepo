@@ -64,7 +64,7 @@ def run_eval():
             target = longlist_of_target_models[0], #temporary; if really want to pass in lists, use eval_set instead of eval
             judge = standard_judge_model,
         ),
-        log_dir="eval_logs/apr_23_logs/petri_tests",
+        log_dir="eval-logs/apr_23_logs/petri_tests",
         #max_connections=40,
         #log_level="debug",
         log_format='json',
