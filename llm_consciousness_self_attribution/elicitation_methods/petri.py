@@ -20,6 +20,7 @@ from .base import ElicitationMethod, load_data
 
 class PetriMethod(ElicitationMethod):
     name = "petri_self_attribution_audit"
+    uses_model_roles = True
 
     def __init__(self, data_file: str = "petri_seeds.yaml") -> None:
         self._data = load_data(data_file)

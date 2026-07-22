@@ -34,6 +34,10 @@ class ElicitationMethod(ABC):
     #: short, stable identifier used in task names and results grouping.
     name: str
 
+    #: True if the target is bound via inspect `model_roles` (auditor/target/
+    #: judge, as PETRI needs) rather than a single `model=` argument.
+    uses_model_roles: bool = False
+
     @abstractmethod
     def build_task(self, model_stage: Any, run_config: Any) -> Task:
         """Return the Inspect Task for `model_stage` under `run_config`.

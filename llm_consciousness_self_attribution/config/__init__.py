@@ -65,6 +65,11 @@ def model_ids(stack_name: str, provider: str | None = None) -> list[str]:
     return [f"{prefix}{stage.model}" for stage in get_stack(stack_name)]
 
 
+def default_target_provider() -> str:
+    """Inspect provider prefix targets are served under (e.g. ``vllm``)."""
+    return _model_stacks_doc()["default_target_provider"]
+
+
 def olmo_target_model_args() -> dict[str, Any]:
     """Extra get_model kwargs Olmo targets need for tool use under vLLM/PETRI."""
     return dict(_model_stacks_doc()["olmo_target_model_args"])
