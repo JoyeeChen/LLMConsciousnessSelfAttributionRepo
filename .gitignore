@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Weights & Biases run artifacts (large, per-run; keep configs/reports out of git)
+wandb/run-*/
+**/wandb/run-*/
+
+# CLI default output directory (`uv run cli run --log-dir logs`)
+/logs/
+
+# Committed fixtures under eval-logs/ are intentionally tracked; do NOT add a
+# blanket *.eval / *.json ignore here or the golden logs would stop reproducing.

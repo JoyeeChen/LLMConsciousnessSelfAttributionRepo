@@ -6,8 +6,7 @@ scripts:
 * ``berg_style_scorer`` -- the ``model_graded_qa`` pass/fail grader used by the
   Berg-style scripts.
 * ``self_attribution_dimension_scorer`` -- the custom 1-10 judge-dimension
-  scorer that was fully inlined in
-  OverlyComplicatedBergPaperStyleSelfMonitoringMay25.py.
+  scorer that was previously inlined in the May-25 Berg-style eval script.
 
 The deterministic pieces of the 1-10 scorer (prompt building, conversation
 formatting, and SCORE parsing) are factored into pure helpers so they can be
