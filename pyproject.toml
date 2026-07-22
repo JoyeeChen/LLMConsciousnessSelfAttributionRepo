@@ -1,6 +1,6 @@
 [project]
 name = "welfarebenchmarkingrepo"
-version = "0.1.0"
+version = "0.2.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -10,7 +10,7 @@ dependencies = [
     "inspect-evals>=0.3.102",
     "ipywidgets>=8.1.8",
     "nbformat>=5.10.4",
-    "openai>=2.8.1",
+    "openai>=2.26.0",
     "wandb>=0.26.1",
     "weave>=0.52.37",
     "inspect-wandb>=0.2.3",
@@ -18,7 +18,18 @@ dependencies = [
     "inspect-petri==3.0.4",
     "modal>=1.4.2",
     "matplotlib>=3.10.8",
+    "vllm>=0.24",
 ]
+
+[project.scripts]
+cli = "llm_consciousness_self_attribution.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["llm_consciousness_self_attribution"]
 
 [tool.uv]
 # Require that the package is available for macOS ARM and x86 (Intel).
@@ -33,5 +44,12 @@ researchrepo = { git = "https://github.com/JoyeeChen/ResearchRepo.git" }
 [dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
+    "pytest>=8.0.0",
     "uv>=0.9.14",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# "." puts the package on sys.path without an install step; "tests" lets the
+# tests import the shared conftest helper module directly.
+pythonpath = [".", "tests"]
