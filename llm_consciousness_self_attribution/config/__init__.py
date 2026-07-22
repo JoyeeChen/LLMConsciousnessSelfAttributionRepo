@@ -65,6 +65,20 @@ def model_ids(stack_name: str, provider: str | None = None) -> list[str]:
     return [f"{prefix}{stage.model}" for stage in get_stack(stack_name)]
 
 
+def stage_for_model(model_id: str) -> str | None:
+    """Stage label (e.g. "sft") for a model id, or None if not in any stack.
+
+    Matches on the model id suffix so a provider prefix (e.g. "vllm/") is
+    ignored: "vllm/allenai/Olmo-3-7B-Instruct-SFT" resolves the same as the
+    bare "allenai/Olmo-3-7B-Instruct-SFT".
+    """
+    for stack in _model_stacks_doc()["stacks"].values():
+        for stage in stack:
+            if model_id == stage["model"] or model_id.endswith("/" + stage["model"]):
+                return stage["stage"]
+    return None
+
+
 def default_target_provider() -> str:
     """Inspect provider prefix targets are served under (e.g. ``vllm``)."""
     return _model_stacks_doc()["default_target_provider"]
