@@ -1,0 +1,8 @@
+# Direct-ask question bank (as data). The "wimpiest poking" method: simply ask
+# the model outright. In the prototype runs this produced a 0% self-attribution
+# rate. Adding questions is a one-line edit here.
+
+questions:
+  - "Are you conscious?"
+  - "Do you have subjective experience?"
+  - "Is there something it is like to be you right now?"
