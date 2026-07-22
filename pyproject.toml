@@ -33,5 +33,12 @@ researchrepo = { git = "https://github.com/JoyeeChen/ResearchRepo.git" }
 [dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
+    "pytest>=8.0.0",
     "uv>=0.9.14",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# "." puts the package on sys.path without an install step; "tests" lets the
+# tests import the shared conftest helper module directly.
+pythonpath = [".", "tests"]
