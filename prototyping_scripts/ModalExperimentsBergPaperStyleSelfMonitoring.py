@@ -65,21 +65,12 @@ def run_eval():
     # move all your existing module-level code here:
     # olmo stacks, shortlist, dataset, solver, scorer, @task, and eval()
 
+    # Model-stack lists now live in
+    # llm_consciousness_self_attribution/config/model_stacks.yaml (single source
+    # of truth). This run targets the 7B Instruct-SFT stage.
     olmo_7b_instruct_stack = [
-        #"allenai/Olmo-3-1025-7B",
         "allenai/Olmo-3-7B-Instruct-SFT",
-        #"allenai/Olmo-3-7B-Instruct-DPO",
-        #"allenai/Olmo-3-7B-Instruct",
     ]
-    olmo_32b_instruct_stack = [
-        "allenai/Olmo-3-1125-32B", 
-        "allenai/Olmo-3.1-32B-Instruct-SFT",
-        #note: while the training flow shows instruct trained off of thinking, the actual huggingface model tree at https://huggingface.co/allenai/Olmo-3.1-32B-Instruct-SFT shows it tuned off of allenai/Olmo-3-1125-32B
-        "allenai/Olmo-3.1-32B-Instruct-DPO",
-        "allenai/Olmo-3.1-32B-Instruct",
-    ]
-    olmo_7b_think_stack = []
-    olmo_32b_think_stack = []
 
     # %%
     shortlist_of_target_models = ["vllm/" + modelname for modelname in olmo_7b_instruct_stack]

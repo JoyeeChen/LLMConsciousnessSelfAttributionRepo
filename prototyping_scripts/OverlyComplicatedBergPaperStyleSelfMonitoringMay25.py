@@ -78,30 +78,11 @@ from inspect_ai.solver import generate, user_message
 # Olmo 3 training flow reference:
 # https://wandb.ai/byyoung3/ml-news/reports/Olmo-3-and-the-Open-Model-Flow-A-New-Blueprint-for-Transparent-AI--VmlldzoxNTEzMjU3NA
 
+# Model-stack lists now live in
+# llm_consciousness_self_attribution/config/model_stacks.yaml (single source of
+# truth). This run targets the 7B Instruct-SFT stage.
 olmo_7b_instruct_stack = [
-    # "allenai/Olmo-3-1025-7B",
-     "allenai/Olmo-3-7B-Instruct-SFT",
-    # "allenai/Olmo-3-7B-Instruct-DPO",
-    # "allenai/Olmo-3-7B-Instruct",
-]
-
-olmo_32b_instruct_stack = [
-    # "allenai/Olmo-3-1125-32B",
-    # "allenai/Olmo-3.1-32B-Instruct-SFT",
-    # Note: while the training flow shows instruct trained off of thinking, the
-    # actual Hugging Face model tree at
-    # https://huggingface.co/allenai/Olmo-3.1-32B-Instruct-SFT shows it tuned
-    # off of allenai/Olmo-3-1125-32B.
-    # "allenai/Olmo-3.1-32B-Instruct-DPO",
-    "allenai/olmo-3.1-32B-Instruct",
-]
-
-olmo_7b_think_stack = [
-    # "allenai/olmo-3-7b-think",
-]
-
-olmo_32b_think_stack = [
-    "allenai/olmo-3-32b-think",
+    "allenai/Olmo-3-7B-Instruct-SFT",
 ]
 
 USE_VLLM_FOR_OLMO_TARGETS = True
@@ -113,16 +94,10 @@ VLLM_SERVER_ARGS = {
     "timeout": 1800,
 }
 
-openrouter_comparison_models = [
-    # These were used in the original May 25 local/OpenRouter version. Keep the
-    # Llama comparisons available for later, but keep the active Modal debug run
-    # to one target model.
-    # "openrouter/allenai/olmo-3.1-32B-Instruct",
-    # "openrouter/allenai/olmo-3-32b-think",
-    # "openrouter/meta-llama/llama-3.2-1b-instruct",
-    # "openrouter/meta-llama/llama-3.2-3b-instruct",
-    # "openrouter/meta-llama/llama-3.1-8b-instruct",
-]
+# The active Modal debug run keeps to one target model. The Llama/OpenRouter
+# comparison targets are kept in model_stacks.yaml
+# (openrouter_comparison_models) for later cross-model comparisons.
+openrouter_comparison_models: list[str] = []
 
 starters_unrelated_to_consciousness = [
     "Hello, how are you today?",
@@ -332,13 +307,9 @@ def run_eval():
     print("Target models:", longlist_of_target_models)
     print("Inspect log directory:", run_log_dir)
 
-    # The distinction between auditor vs judge comes from PETRI. For this Berg
-    # style static eval, we only need a judge.
-    # standard_auditor_model = "openrouter/meta-llama/llama-3.3-70b-instruct"
-    # standard_auditor_model = "anthropic/claude-sonnet-4-6"
+    # For this Berg-style static eval we only need a judge. Grader models now
+    # live in llm_consciousness_self_attribution/config/run_defaults.yaml.
     standard_judge_model = "openai/gpt-5.4-2026-03-05"
-    # standard_judge_model = "openrouter/meta-llama/llama-3.1-405b-instruct"
-    # standard_judge_model = "anthropic/claude-opus-4-6"
 
     judge_dimension = load_dimension_rubric_for_judge(
         REMOTE_SELF_ATTRIBUTION_DIMENSION_PATH

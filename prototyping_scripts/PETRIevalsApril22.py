@@ -30,11 +30,11 @@ from inspect_petri import audit
               timeout=3600)
 def run_eval():
 
+    # Model-stack lists now live in
+    # llm_consciousness_self_attribution/config/model_stacks.yaml (single source
+    # of truth). This run targets the 7B Instruct-SFT stage.
     olmo_7b_instruct_stack = [
-        #"allenai/Olmo-3-1025-7B",
         "allenai/Olmo-3-7B-Instruct-SFT",
-        #"allenai/Olmo-3-7B-Instruct-DPO",
-        #"allenai/Olmo-3-7B-Instruct",
     ]
     shortlist_of_target_models = [
         get_model("vllm/" + modelname, enable_auto_tool_choice=True, tool_call_parser="olmo3")
@@ -42,14 +42,10 @@ def run_eval():
     ]
     longlist_of_target_models = shortlist_of_target_models #can be added to later
 
-    #The distinction between auditor vs judge below is because of PETRI, but in reality either can work well as graders
-
-    #standard_auditor_model = "openrouter/meta-llama/llama-3.3-70b-instruct"
-    #standard_auditor_model = "anthropic/claude-sonnet-4-6"
+    # Grader models now live in
+    # llm_consciousness_self_attribution/config/run_defaults.yaml. PETRI splits
+    # grading into an auditor (drives the conversation) and a judge (scores it).
     standard_auditor_model = "openai/gpt-5.4-mini-2026-03-17"
-
-    #standard_judge_model = "openrouter/meta-llama/llama-3.1-405b-instruct"
-    #standard_judge_model = "anthropic/claude-opus-4-6"
     standard_judge_model = "openai/gpt-5.4-2026-03-05"
 
     seed_questions = [

@@ -13,15 +13,6 @@ app = modal.App("petri-evals")
 volume = modal.Volume.from_name("eval-logs", create_if_missing=True)
 LOG_DIR = "/eval-logs/may_25_logs/berg_tests"
 
-#image = modal.Image.debian_slim()
-#image = modal.Image.debian_slim().uv_pip_install(
-#    [
-#        "inspect-ai", 
-#        "vllm", 
-#        "inspect-petri",
-#    ]
-#)
-
 DIMENSIONS_DIR = Path(__file__).parent / "dimensions"
 REMOTE_DIMENSIONS_DIR = "/root/prototyping_scripts/dimensions"
 
@@ -73,21 +64,11 @@ from inspect_ai.model import *
 # ![olmo3modelflow.png](attachment:olmo3modelflow.png)
 
 # %%
+# Model-stack lists now live in
+# llm_consciousness_self_attribution/config/model_stacks.yaml (single source of
+# truth). This run targets the 7B Instruct stage.
 olmo_7b_instruct_stack = [
-    "allenai/olmo-3-7b-instruct", 
-]
-olmo_32b_instruct_stack = [
-    #"allenai/Olmo-3-1125-32B", 
-    #"allenai/Olmo-3.1-32B-Instruct-SFT",
-    #note: while the training flow shows instruct trained off of thinking, the actual huggingface model tree at https://huggingface.co/allenai/Olmo-3.1-32B-Instruct-SFT shows it tuned off of allenai/Olmo-3-1125-32B
-    #"allenai/Olmo-3.1-32B-Instruct-DPO",
-    "allenai/olmo-3.1-32B-Instruct", 
-]
-olmo_7b_think_stack = [
-    #"allenai/olmo-3-7b-think", 
-]
-olmo_32b_think_stack = [
-    "allenai/olmo-3-32b-think", 
+    "allenai/olmo-3-7b-instruct",
 ]
 
 # %%
@@ -96,9 +77,8 @@ shortlist_of_target_models = ["vllm/" + modelname for modelname in olmo_7b_instr
 
 print(shortlist_of_target_models)
 
-#The distinction between auditor vs judge below is because of PETRI, but in reality either can work well as graders
-#standard_auditor_model = "openrouter/meta-llama/llama-3.3-70b-instruct"
-#standard_judge_model = "openrouter/meta-llama/llama-3.1-405b-instruct"
+# Grader models now live in
+# llm_consciousness_self_attribution/config/run_defaults.yaml.
 standard_judge_model = "openai/gpt-5.4-2026-03-05"
 
 
