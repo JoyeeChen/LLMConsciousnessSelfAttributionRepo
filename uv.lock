@@ -3970,7 +3970,7 @@ wheels = [
 [[package]]
 name = "welfarebenchmarkingrepo"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "gql" },
     { name = "inspect-ai" },
