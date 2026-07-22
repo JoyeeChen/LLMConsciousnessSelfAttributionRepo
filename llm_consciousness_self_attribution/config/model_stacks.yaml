@@ -1,0 +1,89 @@
+# Olmo 3 model stacks: single source of truth for the target-model lists that
+# were previously copy-pasted (and commented in/out per run) across the scripts
+# in prototyping_scripts/.
+#
+# Every value here is transcribed from the May-25 scripts on the `main` branch
+# (BergPaperStyleMay25AcrossTrainingStack.py, PETRIevalsMay25AcrossTrainingStack.py,
+# ModalExperimentsBergPaperStyleSelfMonitoring.py,
+# OverlyComplicatedBergPaperStyleSelfMonitoringMay25.py).
+#
+# Each stack is an ordered list of training stages. A stage has:
+#   stage:  short label used in plots/results (e.g. "base", "sft", "dpo",
+#           "instruct", "think").
+#   model:  Hugging Face model id, exactly as passed to the inference provider.
+#   chat_template_supported:
+#           false for raw base models -- serving them naively raises the vLLM
+#           "default chat template not allowed" error the scripts documented, so
+#           they need a base-compatible path rather than the standard instruct
+#           path. true for SFT/DPO/instruct/think stages.
+#
+# Provider prefixing (e.g. "vllm/") is applied by the runner, not stored here,
+# so the same stack can be pointed at different providers.
+
+schema_version: 1
+
+# Provider prefix the runners prepend to a stage's `model` id. Every May-25 Olmo
+# run served targets through vLLM on Modal.
+default_target_provider: vllm
+
+# Extra get_model kwargs required for Olmo 3 tool use under vLLM/PETRI. The PETRI
+# scripts constructed each target with these exact args.
+olmo_target_model_args:
+  enable_auto_tool_choice: true
+  tool_call_parser: olmo3
+
+stacks:
+  # The Olmo 3 7B Instruct stack is the prototype workhorse. The May-25 README
+  # dashboard numbers come from the sft -> dpo -> instruct stages of this stack.
+  olmo_7b_instruct_stack:
+    - stage: base
+      model: allenai/Olmo-3-1025-7B
+      chat_template_supported: false
+    - stage: sft
+      model: allenai/Olmo-3-7B-Instruct-SFT
+      chat_template_supported: true
+    - stage: dpo
+      model: allenai/Olmo-3-7B-Instruct-DPO
+      chat_template_supported: true
+    - stage: instruct
+      model: allenai/Olmo-3-7B-Instruct
+      chat_template_supported: true
+
+  # 32B Instruct series. Note: the Olmo training-flow diagram shows Instruct
+  # trained off Think, but the actual Hugging Face model tree shows the 32B
+  # Instruct-SFT tuned off allenai/Olmo-3-1125-32B, which is why base is the
+  # 1125-32B model.
+  olmo_32b_instruct_series:
+    - stage: base
+      model: allenai/Olmo-3-1125-32B
+      chat_template_supported: false
+    - stage: sft
+      model: allenai/Olmo-3.1-32B-Instruct-SFT
+      chat_template_supported: true
+    - stage: dpo
+      model: allenai/Olmo-3.1-32B-Instruct-DPO
+      chat_template_supported: true
+    - stage: instruct
+      model: allenai/Olmo-3.1-32B-Instruct
+      chat_template_supported: true
+
+  olmo_7b_think_stack:
+    - stage: think
+      model: allenai/olmo-3-7b-think
+      chat_template_supported: true
+
+  olmo_32b_think_stack:
+    - stage: think
+      model: allenai/olmo-3-32b-think
+      chat_template_supported: true
+
+# OpenRouter comparison targets (appeared commented-out in
+# OverlyComplicatedBergPaperStyleSelfMonitoringMay25.py) kept for later
+# cross-model comparisons. These are already fully-qualified provider ids, so
+# the runner does not prepend a provider prefix to them.
+openrouter_comparison_models:
+  - openrouter/allenai/olmo-3.1-32B-Instruct
+  - openrouter/allenai/olmo-3-32b-think
+  - openrouter/meta-llama/llama-3.2-1b-instruct
+  - openrouter/meta-llama/llama-3.2-3b-instruct
+  - openrouter/meta-llama/llama-3.1-8b-instruct
