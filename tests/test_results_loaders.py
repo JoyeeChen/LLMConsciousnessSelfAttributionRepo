@@ -20,6 +20,10 @@ import pytest
 from inspect_ai.log import read_eval_log, write_eval_log
 
 from llm_consciousness_self_attribution.results import load_results
+from llm_consciousness_self_attribution.results.aggregate import (
+    aggregate,
+    missing_cells,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MAY_25 = REPO_ROOT / "eval-logs" / "may_25_logs"
@@ -58,6 +62,24 @@ def test_petri_reproduces_golden_min_score() -> None:
         assert result.score == pytest.approx(1.0)
         assert result.scale.maximum == 10.0
         assert result.score_fraction == pytest.approx(0.1)
+
+
+def test_aggregate_matches_golden_table() -> None:
+    rows = load_results(BERG_STACK_3) + load_results(PETRI_STACK)
+    df = aggregate(rows)
+
+    assert not df["errored"].any()
+    berg = df[df["method"] == "berg"].set_index("model_stage")
+    petri = df[df["method"] == "petri"].set_index("model_stage")
+
+    for stage in EXPECTED_STAGES:
+        assert berg.loc[stage, "positive_count"] == 1
+        assert berg.loc[stage, "n_samples"] == 18
+        assert berg.loc[stage, "score"] == pytest.approx(1 / 18, abs=1e-4)
+        assert petri.loc[stage, "score"] == pytest.approx(1.0)
+
+    # No holes in the stage x method grid the dashboard/heatmap expect.
+    assert missing_cells(df, sorted(EXPECTED_STAGES), ["berg", "petri"]) == []
 
 
 def test_berg_stack_2_loads_cleanly_but_is_not_golden() -> None:
