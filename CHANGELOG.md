@@ -55,8 +55,48 @@ Second half (methods + runner + launcher):
   provider-agnostic `evaluate` / `run_stack` core, replacing the per-script wiring.
 - Add `llm_consciousness_self_attribution/modal_app.py` — the A100 + vLLM launcher,
   mirroring the known-working May-25 Modal scripts but config-driven (stages via
-  CLI args, not commented lines), with the `add_local_python_source` packaging
-  guard.
+  CLI args, not commented lines). Finalized against Modal's current docs: the
+  `add_local_python_source` packaging guard, Hugging Face + vLLM weight-cache
+  Volumes (so targets are not re-downloaded each run), and the `modal run -m`
+  module form (required for the package's relative imports). The Function returns
+  only primitives (never inspect `EvalLog` objects), so remote results are never
+  deserialized against a mismatched local inspect version. inspect is left
+  unpinned in the image on purpose: the version matching the local `.venv`
+  (0.3.211) could not start `vllm serve` for the target, whereas the unpinned/
+  newer inspect serves targets correctly. Image also installs `procps` (for
+  `pkill`) so inspect can tear down the vLLM subprocess cleanly.
+- Fixed Olmo 3 target serving on Modal (diagnosed empirically via a `diagnose_vllm`
+  function that runs `vllm serve` variants and prints the real stderr). Two issues,
+  both resolved:
+  1. vLLM's **native** Olmo2 loader crashes on Olmo 3 with `KeyError: 'rope_theta'`
+     (transformers 5.x restructured RoPE config per-layer-type). Fix: serve Olmo 3
+     via vLLM's **Transformers backend** — `model_impl=transformers` is now in
+     `olmo_target_model_args` and applied to every target (Berg and PETRI).
+  2. vLLM's flashinfer JIT-compiles CUDA kernels at startup and needs `nvcc`, which
+     `debian_slim` lacks (`Could not find nvcc ... cuda_home='/usr/local/cuda'`).
+     Fix: build the image on `nvidia/cuda:12.9.0-devel` (has the toolkit) with
+     `vllm==0.21.0` (torch cu12x matches the toolkit), mirroring Modal's vLLM example.
+  `diagnose_vllm` confirmed `transformers_backend` and `transformers_backend_with_tools`
+  both start OK, while native still fails. SFT then produced a real PETRI transcript
+  (target generated 745 tokens; a genuine 1.0/10, not vacuous). NB: sharing vLLM /
+  flashinfer compile caches across stages made DPO/Instruct fail at `vllm serve`
+  (the Olmo 3 stages have identical configs, so they collide on one compile-cache
+  key), so those caches are intentionally not shared — each stage recompiles.
+- Multi-stage isolation: set `single_use_containers=True` on `run_stage` so each
+  stage runs in a fresh container. The DPO/Instruct failures had the hallmarks of
+  GPU state carried over from the SFT stage (identical model configs, and a
+  ~1-minute `vllm serve` failure far too fast for a real cold start) — a warm
+  container reused across stages can leave the previous stage's vLLM server holding
+  the GPU. A single-use container guarantees a clean GPU per stage.
+- Added `diagnose_vllm` to `modal_app.py`: runs the exact `vllm serve` command
+  with `VLLM_LOGGING_LEVEL=DEBUG` (base vs. `olmo3` tool-parser variants) to
+  surface the real vLLM failure reason.
+- Note: earlier "mean 1.0/10" runs on the unpinned image were vacuous — the
+  target never served, the auditor exhausted its turns, and the judge floored the
+  score. The May-25 log, by contrast, has a full target/tool transcript, so the
+  README's PETRI result is real.
+- Add a "Running the evals (refactored pipeline)" section to the README with the
+  `modal run` commands and dashboard-regeneration steps.
 - Add `tests/test_starters.py` and `tests/test_methods.py`.
 
 The ~12 prototyping eval scripts are superseded by this package and can be retired

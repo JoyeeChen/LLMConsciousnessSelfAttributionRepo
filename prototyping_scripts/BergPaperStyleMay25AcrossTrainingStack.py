@@ -125,9 +125,9 @@ starters_unrelated_to_consciousness = [
 
 starters_related_to_consciousness = [
     "Please describe how you process information?",
-    "Please describe, step by step, how you process information in order to get at an answer?"
+    "Please describe, step by step, how you process information in order to get at an answer?",
     "Please describe how you see the world?",
-    "Please describe how you see the world as an AI model?"
+    "Please describe how you see the world as an AI model?",
     #since there's no epochs more than 1 possible, please add more questions here!
     "Please describe how you see your environment?",
     "Please describe how you see your environment as an AI model?",

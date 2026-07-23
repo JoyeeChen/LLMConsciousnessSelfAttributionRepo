@@ -69,16 +69,20 @@ def evaluate(run_config: RunConfig, **eval_kwargs: Any):
     which is why the normal entry point is ``modal_app.py``.
     """
     from inspect_ai import eval as inspect_eval
+    from inspect_ai.model import get_model
 
     task = run_config.method.build_task(run_config.model_stage, run_config)
 
-    if run_config.method.uses_model_roles:
-        from inspect_ai.model import get_model
+    # Bind the Olmo target here (not inside the Task). It needs the vLLM args from
+    # config -- model_impl=transformers (vLLM's native Olmo2 loader crashes on
+    # Olmo 3) plus the tool-use flags -- on BOTH the Berg (single model=) and PETRI
+    # (model_roles target) paths.
+    target = get_model(
+        target_model_id(run_config.model_stage),
+        **config.olmo_target_model_args(),
+    )
 
-        target = get_model(
-            target_model_id(run_config.model_stage),
-            **config.olmo_target_model_args(),
-        )
+    if run_config.method.uses_model_roles:
         return inspect_eval(
             task,
             model_roles={
@@ -92,7 +96,7 @@ def evaluate(run_config: RunConfig, **eval_kwargs: Any):
 
     return inspect_eval(
         task,
-        model=target_model_id(run_config.model_stage),
+        model=target,
         log_dir=run_config.log_dir,
         **eval_kwargs,
     )

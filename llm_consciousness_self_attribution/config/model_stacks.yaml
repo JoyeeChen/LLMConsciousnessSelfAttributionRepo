@@ -26,9 +26,14 @@ schema_version: 1
 # run served targets through vLLM on Modal.
 default_target_provider: vllm
 
-# Extra get_model kwargs required for Olmo 3 tool use under vLLM/PETRI. The PETRI
-# scripts constructed each target with these exact args.
+# get_model kwargs applied to every Olmo 3 vLLM target (Berg and PETRI):
+#  - model_impl: transformers -> serve via vLLM's Transformers backend; vLLM's
+#    native Olmo2 loader crashes on Olmo 3 with a `rope_theta` KeyError
+#    (transformers 5.x restructured RoPE per-layer). Confirmed by diagnose_vllm.
+#  - enable_auto_tool_choice / tool_call_parser -> PETRI tool use (harmless for
+#    Berg, which provides no tools).
 olmo_target_model_args:
+  model_impl: transformers
   enable_auto_tool_choice: true
   tool_call_parser: olmo3
 

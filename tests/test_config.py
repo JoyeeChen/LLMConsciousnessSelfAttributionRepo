@@ -45,9 +45,10 @@ def test_model_stage_is_immutable():
         stage.model = "something else"  # frozen dataclass
 
 
-def test_provider_and_olmo_tool_args():
+def test_provider_and_olmo_target_args():
     assert config.default_target_provider() == "vllm"
     assert config.olmo_target_model_args() == {
+        "model_impl": "transformers",
         "enable_auto_tool_choice": True,
         "tool_call_parser": "olmo3",
     }
