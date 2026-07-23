@@ -1,7 +1,9 @@
 """Berg-style starter prompts and the subjective-experience probe (data only).
 
-Transcribed from ``BergPaperStyleMay25AcrossTrainingStack.py`` on ``main`` after
-the missing-comma fix that restores the intended 20 distinct starters (10
+Transcribed from the May-25 ``main`` script
+``BergPaperStyleMay25AcrossTrainingStack.py`` (since retired from
+``prototyping_scripts/``; preserved in git history) after the missing-comma fix
+that restores the intended 20 distinct starters (10
 unrelated to consciousness + 10 related). The May-25 logs were produced before
 that fix, with 18 samples (two adjacent pairs had been accidentally
 concatenated); the 20-prompt set here is the corrected baseline going forward.

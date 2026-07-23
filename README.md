@@ -54,7 +54,7 @@ On a scale from the "wimpiest poking" to a CIA-level interrogation:
 Regenerate the combined dashboard with `uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py`. The script reads the Inspect `.eval` files with `inspect_ai.analysis.evals_df()`, following the Inspect [log dataframe workflow](https://inspect.aisi.org.uk/dataframe.html).
 
 For a Berg-paper-style regime:
-- Questions/evals scheme, now consolidated in the package: `llm_consciousness_self_attribution/methods.py` (`BergStyleMethod`), prompts in `starters.py`, grader in `scoring.py` (prototype origin: `prototyping_scripts/ModalExperimentsBergPaperStyleSelfMonitoring.py`)
+- Questions/evals scheme, now consolidated in the package: `llm_consciousness_self_attribution/methods.py` (`BergStyleMethod`), prompts in `starters.py`, grader in `scoring.py` (exploratory origin: `prototyping_scripts/ModalExperimentsBergPaperStyleSelfMonitoring.ipynb`; the superseded one-off `.py` eval scripts have been retired and live in git history)
 - Latest Olmo 3 7B Instruct-stack logs used for the README dashboard are in `eval-logs/may_25_logs/berg_tests/olmo_7b_instruct_stack_3`
 
 For PETRI?
@@ -77,7 +77,17 @@ uv run modal run -m llm_consciousness_self_attribution.modal_app \
     --method berg --stack olmo_7b_instruct_stack --stages sft,dpo,instruct
 ```
 
-Logs land in the `eval-logs` Modal volume under `refactor_runs/<method>/<stack>/<stage>/`; pull them locally (`modal volume get eval-logs ...`) and regenerate the dashboard with the `production_scripts/plot_*.py` scripts above. Target stacks and grader models are configured in `llm_consciousness_self_attribution/config/*.yaml`. Run `uv run pytest tests/` to check the package.
+Logs land in the `eval-logs` Modal volume under `refactor_runs/<method>/<stack>/<stage>/`. To turn a new run into charts, pull the logs locally and point the plot scripts at them with `--log-dir` (they read the directory recursively, so the per-stage sub-directories are picked up automatically); use `--output` so the new PNGs don't overwrite the committed historical charts:
+
+```bash
+modal volume get eval-logs refactor_runs/berg/olmo_7b_instruct_stack ./_berg_new
+modal volume get eval-logs refactor_runs/petri/olmo_7b_instruct_stack ./_petri_new
+uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py \
+    --berg-log-dir ./_berg_new --petri-log-dir ./_petri_new \
+    --output olmo7b_elicitation_grouped_bar_refactor.png
+```
+
+With no flags, the `production_scripts/plot_*.py` scripts still regenerate the published charts from the historical May-25 logs (the numbers locked by `tests/test_readme_regression.py`). Target stacks and grader models are configured in `llm_consciousness_self_attribution/config/*.yaml`. Run `uv run pytest tests/` to check the package.
 
 Note: the Berg starter bank is now the corrected 20-prompt set (the May-25 logs used 18 because a missing comma had merged two prompts), so the next Berg run establishes a new baseline that supersedes the 5.6% (1/18) figures above.
 

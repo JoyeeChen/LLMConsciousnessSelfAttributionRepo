@@ -103,3 +103,34 @@ The ~12 prototyping eval scripts are superseded by this package and can be retir
 once a live Modal re-run confirms parity.
 
 Still behavior-preserving: no eval is re-run and the README charts are untouched.
+
+### Task #15 — Retire superseded prototype scripts; wire the dashboard to `refactor_runs/`
+
+- Deleted the seven superseded one-off eval-generation scripts from
+  `prototyping_scripts/` (`BergPaperStyleMay25AcrossTrainingStack.py`,
+  `BergPaperStyleSelfMonitoringMay25.py`,
+  `ModalExperimentsBergPaperStyleSelfMonitoring.py`,
+  `OverlyComplicatedBergPaperStyleSelfMonitoringMay25.py`,
+  `PETRIevalsApril22.py`, `PETRIevalsMay25.py`,
+  `PETRIevalsMay25AcrossTrainingStack.py`). Their logic now lives in the package
+  (`methods.py`, `run.py`, `modal_app.py`, `starters.py`, `scoring.py`); the files
+  are preserved in git history. The genuinely-exploratory notebooks (`.ipynb`) and
+  their logs are kept.
+- Parameterised the three `production_scripts/plot_*.py` dashboard scripts so they
+  can consume the new `refactor_runs/` logs: each reader now takes an optional
+  `log_dir` (the dashboard takes `berg`/`petri` dirs), and each `main()` grew
+  `--log-dir` (`--berg-log-dir`/`--petri-log-dir`), `--output`, and `--subtitle`
+  flags. `evals_df` reads recursively, so the per-stage `refactor_runs/<method>/
+  <stack>/<stage>/` layout is picked up without flattening.
+- The defaults are unchanged — the historical May-25 log paths — so a no-argument
+  run still regenerates the published charts and
+  `tests/test_readme_regression.py` (which calls the readers with no arguments)
+  stays green. `--output` lets a `refactor_runs` regeneration write new PNGs
+  without clobbering the committed historical charts.
+- Updated the README "Running the evals" section with the pull-and-regenerate
+  commands and repointed the retired-script provenance notes at the kept notebook /
+  git history.
+
+Still behavior-preserving: no eval is re-run and the committed README charts are
+untouched. A live Berg re-run (`refactor_runs/berg/...`) is still needed before the
+new 20-prompt baseline can replace the historical 1/18 figures.

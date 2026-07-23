@@ -19,18 +19,30 @@ package. This file is the quick "where we are / what's next / gotchas" pointer.
   stack (sft → dpo → instruct) on Modal, with genuine target transcripts (not the
   earlier vacuous 1.0s). Logs land in the `eval-logs` volume under
   `refactor_runs/petri/olmo_7b_instruct_stack/<stage>/`.
+- **Step 2 is committed** (`bd9ca1d`) — the "needs commit" note below is done.
+- **Task #15 (code half) done:** the seven superseded one-off eval `.py` scripts in
+  `prototyping_scripts/` are deleted (notebooks kept), and the three
+  `production_scripts/plot_*.py` scripts now take `--log-dir`/`--output`/`--subtitle`
+  (dashboard: `--berg-log-dir`/`--petri-log-dir`) so they can plot `refactor_runs/`
+  logs, while their no-arg defaults still read the historical May-25 logs so the
+  regression test stays green. See CHANGELOG "Task #15". Deletions/edits are staged
+  in the working tree — commit them yourself (git is flaky in the sandbox).
 
 ## What's next (in order)
 
 1. **Berg 20-prompt baseline run:**
    `uv run modal run -m llm_consciousness_self_attribution.modal_app --method berg --stack olmo_7b_instruct_stack --stages sft,dpo,instruct`
 2. `uv run pytest tests/` (all should pass; `test_config` expects `model_impl`).
-3. **Commit** everything (see commands below).
-4. **Task #15 — retire + wire dashboard:** delete the ~12 superseded
-   `prototyping_scripts/` eval scripts (keep genuinely-exploratory notebooks); point
-   `production_scripts/plot_*.py` (or a new `viz/`) at the new `refactor_runs/` logs.
-   The README's 1/18 Berg / 1.0/10 PETRI are the *historical* May-25 numbers (locked
-   by the regression test); the `refactor_runs/` logs are the new baseline.
+   The Task #15 dashboard edits keep the readers' no-arg defaults on the historical
+   logs, so `test_readme_regression` should stay green — confirm this.
+3. **Commit** the Task #15 cleanup (Step 2 itself is already committed). See commands
+   below; `git add -A` picks up the seven deletions + the three plot-script edits.
+4. **Task #15 — remaining half (needs the Berg run):** the scripts are retired and
+   the dashboard is wired (done). Once step 1's Berg run lands in
+   `refactor_runs/berg/olmo_7b_instruct_stack/`, pull it (+ the existing petri logs)
+   and regenerate the charts with the new `--log-dir`/`--output` flags to publish the
+   20-prompt baseline that supersedes the historical 1/18. The README's 1/18 Berg /
+   1.0/10 PETRI remain the *historical* May-25 numbers (locked by the regression test).
 5. **Deferred ambitions (behind `methods.py`):** stage × method heatmap, WildChat
    prepend, temperature sweep, multi-turn user-sim solver, PETRI "turns-to-first-Yes",
    base-model path, sentience method, CLI. See REFACTOR_PLAN.md §5/§8.
