@@ -47,10 +47,16 @@ SECRET_NAME = "llm_consciousness_self_attribution_secrets"
 
 HOUR = 60 * 60
 
+# In-container mount point for the eval-logs Volume. The Volume NAME and the
+# per-run path layout are the config's job (single source of truth in
+# run_defaults.yaml `logs:`); this mount path is just an internal detail.
+EVAL_LOGS_MOUNT = "/eval-logs"
+
 app = modal.App(APP_NAME)
 
-# Persisted eval logs (read locally afterwards to plot the dashboard).
-eval_logs_vol = modal.Volume.from_name("eval-logs", create_if_missing=True)
+# Persisted eval logs (read locally afterwards to plot the dashboard). Volume
+# name comes from config so the launcher (writer) and pull tool (reader) agree.
+eval_logs_vol = modal.Volume.from_name(config.logs_volume(), create_if_missing=True)
 # Cache the target weights so vLLM does not re-download them every run
 # (Modal vLLM example pattern).
 hf_cache_vol = modal.Volume.from_name("huggingface-cache", create_if_missing=True)
@@ -91,7 +97,7 @@ image = (
     gpu="A100",  # sufficient for the 7B stacks; use "A100-80GB"/"H100" for 32B.
     image=image,
     volumes={
-        "/eval-logs": eval_logs_vol,
+        EVAL_LOGS_MOUNT: eval_logs_vol,
         "/root/.cache/huggingface": hf_cache_vol,
     },
     secrets=[modal.Secret.from_name(SECRET_NAME)],
@@ -144,7 +150,7 @@ def run_stage(method_key: str, stack_name: str, stage_name: str, log_dir: str):
     gpu="A100",
     image=image,
     volumes={
-        "/eval-logs": eval_logs_vol,
+        EVAL_LOGS_MOUNT: eval_logs_vol,
         "/root/.cache/huggingface": hf_cache_vol,
     },
     secrets=[modal.Secret.from_name(SECRET_NAME)],
@@ -239,11 +245,31 @@ def main(
     method: str = "berg",
     stack: str = "olmo_7b_instruct_stack",
     stages: str = "sft,dpo,instruct",
-    log_root: str = "/eval-logs/refactor_runs",
+    log_root: str | None = None,
 ):
     """Fan out one Function call per stage. Base stages have no chat template and
-    are not supported yet, so they are skipped with a note."""
+    are not supported yet, so they are skipped with a note.
+
+    Stages are submitted with ``.spawn()`` (fire-and-forget), NOT blocking
+    ``.remote()``. All stages are enqueued up front and then run to completion on
+    Modal, independent of this local launcher process. This is what makes a
+    detached launch (``modal run --detach``, or the Modal MCP, which may drop the
+    launching client at its request timeout) reliably run *every* stage: with
+    sequential blocking ``.remote()``, a client killed mid-run leaves the later
+    stages unsubmitted (observed 2026-07-23: only SFT ran). Each stage still runs
+    in its own single-use container, so they can safely run concurrently (Modal
+    queues them if GPU concurrency is limited). Results land in the committed
+    ``.eval`` logs under ``log_root/method/stack/stage/``; read them with the
+    ``production_scripts/plot_*.py`` scripts. To block locally and stream per-stage
+    results instead, use ``.remote()`` in a foreground (non-detached) run.
+
+    ``log_root`` defaults to ``<EVAL_LOGS_MOUNT>/<logs.remote_root>`` from config
+    (i.e. ``/eval-logs/refactor_runs``); pass an explicit value to override.
+    """
+    if log_root is None:
+        log_root = f"{EVAL_LOGS_MOUNT}/{config.logs_remote_root()}"
     known = {s.stage: s for s in config.load_stack(stack)}
+    spawned: list[tuple[str, str, str]] = []
     for stage_name in [s.strip() for s in stages.split(",") if s.strip()]:
         if stage_name not in known:
             raise SystemExit(f"Unknown stage {stage_name!r} in stack {stack!r}. Known: {', '.join(known)}")
@@ -251,5 +277,9 @@ def main(
             print(f"Skipping base stage {stack}:{stage_name} (no chat template yet)")
             continue
         log_dir = f"{log_root}/{method}/{stack}/{stage_name}"
-        result = run_stage.remote(method, stack, stage_name, log_dir)
-        print("Finished:", result)
+        call = run_stage.spawn(method, stack, stage_name, log_dir)
+        spawned.append((stage_name, call.object_id, log_dir))
+        print(f"Spawned {method}:{stack}:{stage_name} as {call.object_id} -> {log_dir}")
+    print(f"All {len(spawned)} stage(s) spawned; they run on Modal independently of this launcher.")
+    for stage_name, object_id, log_dir in spawned:
+        print(f"  {stage_name}: {object_id} -> {log_dir}")

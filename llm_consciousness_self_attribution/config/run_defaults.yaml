@@ -32,3 +32,18 @@ run:
   # RNG seed. The design rules require seeding RNGs; runs default to this unless
   # a caller overrides it.
   seed: 42
+
+# Where eval logs live and how to mirror them locally. Single authoritative
+# representation of the log-location convention (DRY): the Modal launcher writes
+# here and the pull/view tooling reads from here, so the path is not duplicated
+# across modal_app.py, the plot scripts, and the docs.
+logs:
+  # Modal Volume that persists the .eval logs (mounted read/write in the runner).
+  volume: eval-logs
+  # Path within the volume under which runs are written, laid out as
+  #   <remote_root>/<method>/<stack>/<stage>/
+  remote_root: refactor_runs
+  # Local directory the pull tool mirrors the remote logs into. Relative to the
+  # repo root, and git-ignored (the volume is the source of truth; the committed
+  # historical fixtures live separately under eval-logs/may_25_logs/).
+  local_dir: eval-logs/refactor_runs

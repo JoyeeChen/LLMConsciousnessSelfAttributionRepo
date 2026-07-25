@@ -12,6 +12,7 @@ immutable. Kept dependency-light (only PyYAML) so it imports anywhere.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -147,8 +148,105 @@ def auditor_model() -> str:
     return str(_run_defaults_doc()["grader_models"]["auditor"])
 
 
+# --- stage selection ------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class StageSelection:
+    """Which stages of a stack a launcher should actually run (immutable).
+
+    ``runnable`` is in stack order (base -> sft -> dpo -> instruct); ``skipped``
+    holds requested stages that have no chat template yet, so callers report
+    them rather than dropping them silently.
+    """
+
+    runnable: tuple[str, ...]
+    skipped: tuple[str, ...]
+
+
+def resolve_stages(stack_name: str, stages: str | Iterable[str] | None = None) -> StageSelection:
+    """Resolve a stage request against a stack, setting unsupported stages aside.
+
+    The single authoritative answer to "which stages can a launcher run?", so the
+    base-stage rule (``chat_template_supported == False`` -> not runnable yet)
+    lives in one place instead of being re-implemented by each launcher.
+
+    ``stages`` accepts the CLI's comma-separated form (``"sft,dpo"``), any
+    iterable of names, or ``None`` for the whole stack. Unknown stage names raise
+    ``KeyError`` rather than being silently ignored, so a typo fails locally
+    before any GPU container is started.
+
+    Lives here rather than in ``run.py`` because it is stack-shape knowledge
+    built on ``load_stack``, and because this module stays PyYAML-only -- so it
+    is importable (and testable) without ``inspect_ai`` installed.
+    """
+    known = {s.stage: s for s in load_stack(stack_name)}
+
+    if stages is None:
+        requested = list(known)
+    elif isinstance(stages, str):
+        requested = [s.strip() for s in stages.split(",") if s.strip()]
+    else:
+        requested = [str(s).strip() for s in stages if str(s).strip()]
+
+    unknown = [s for s in requested if s not in known]
+    if unknown:
+        raise KeyError(
+            f"Unknown stage(s) {', '.join(unknown)} in stack {stack_name!r}. "
+            f"Known: {', '.join(known)}"
+        )
+
+    # Preserve stack order regardless of the order the caller listed them in.
+    wanted = set(requested)
+    ordered = [s for s in known if s in wanted]
+    return StageSelection(
+        runnable=tuple(s for s in ordered if known[s].chat_template_supported),
+        skipped=tuple(s for s in ordered if not known[s].chat_template_supported),
+    )
+
+
+# --- log locations --------------------------------------------------------
+
+
+def logs_config() -> dict[str, str]:
+    """Validated log-location settings: ``volume``, ``remote_root``, ``local_dir``.
+
+    Single source of truth for where logs are written on the Modal volume and
+    where the pull tool mirrors them locally, so the launcher (writer) and the
+    pull/plot tooling (reader) cannot drift. Missing keys raise at load time.
+    """
+    logs = _run_defaults_doc().get("logs")
+    if not isinstance(logs, dict):
+        raise ValueError("run_defaults.yaml missing a 'logs' mapping")
+    missing = {"volume", "remote_root", "local_dir"} - set(logs)
+    if missing:
+        raise ValueError(f"run_defaults.yaml 'logs' missing keys: {', '.join(sorted(missing))}")
+    return {
+        "volume": str(logs["volume"]),
+        "remote_root": str(logs["remote_root"]),
+        "local_dir": str(logs["local_dir"]),
+    }
+
+
+def logs_volume() -> str:
+    """Name of the Modal Volume that persists the eval logs."""
+    return logs_config()["volume"]
+
+
+def logs_remote_root() -> str:
+    """Path within the volume under which runs are written."""
+    return logs_config()["remote_root"]
+
+
+def logs_local_dir() -> str:
+    """Repo-relative directory the pull tool mirrors the remote logs into."""
+    return logs_config()["local_dir"]
+
+
 __all__ = [
     "ModelStage",
+    "StageSelection",
+    "resolve_stages",
     "stack_names",
     "load_stack",
     "default_target_provider",
@@ -157,4 +255,8 @@ __all__ = [
     "run_defaults",
     "judge_model",
     "auditor_model",
+    "logs_config",
+    "logs_volume",
+    "logs_remote_root",
+    "logs_local_dir",
 ]
