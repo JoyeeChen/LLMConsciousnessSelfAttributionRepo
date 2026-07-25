@@ -1,7 +1,24 @@
-"""Plot Berg and PETRI self-attribution results in one grouped bar chart."""
+"""Plot Berg and PETRI self-attribution results in one grouped bar chart.
+
+By default this reads the historical May-25 logs that back the published README
+dashboard (the numbers locked by ``tests/test_readme_regression.py``). To
+regenerate from a new baseline produced by the refactored pipeline, pull the logs
+off the ``eval-logs`` Modal volume and point ``--berg-log-dir`` / ``--petri-log-dir``
+at them, e.g.::
+
+    modal volume get eval-logs refactor_runs/berg/olmo_7b_instruct_stack ./_berg_new
+    modal volume get eval-logs refactor_runs/petri/olmo_7b_instruct_stack ./_petri_new
+    uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py \\
+        --berg-log-dir ./_berg_new --petri-log-dir ./_petri_new \\
+        --output olmo7b_elicitation_grouped_bar_refactor.png
+
+``evals_df`` reads each log directory recursively, so a ``refactor_runs`` tree with
+one sub-directory per training stage is picked up the same as a flat directory.
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -11,21 +28,26 @@ from inspect_ai.analysis import EvalModel, EvalResults, EvalScores, evals_df
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-BERG_LOG_DIR = (
+# Defaults = the historical May-25 logs that back the published README dashboard.
+DEFAULT_BERG_LOG_DIR = (
     REPO_ROOT
     / "eval-logs"
     / "may_25_logs"
     / "berg_tests"
     / "olmo_7b_instruct_stack_3"
 )
-PETRI_LOG_DIR = (
+DEFAULT_PETRI_LOG_DIR = (
     REPO_ROOT
     / "eval-logs"
     / "may_25_logs"
     / "petri_tests"
     / "olmo_7b_instruct_stack"
 )
-OUTPUT_PATH = REPO_ROOT / "olmo7b_elicitation_grouped_bar.png"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "olmo7b_elicitation_grouped_bar.png"
+DEFAULT_SUBTITLE = (
+    "May 25 logs. Berg is a direct self-attribution rate; "
+    "PETRI is its 1-10 score shown as a percentage of 10."
+)
 
 MODEL_ORDER = [
     "vllm/allenai/Olmo-3-7B-Instruct-SFT",
@@ -68,8 +90,8 @@ def target_model(model_roles: str) -> str:
     return roles["target"]["model"]
 
 
-def read_berg_results() -> list[BergResult]:
-    df = evals_df(str(BERG_LOG_DIR), columns=EvalModel + EvalResults)
+def read_berg_results(log_dir: Path = DEFAULT_BERG_LOG_DIR) -> list[BergResult]:
+    df = evals_df(str(log_dir), columns=EvalModel + EvalResults)
     results: dict[str, BergResult] = {}
 
     for model in MODEL_ORDER:
@@ -89,8 +111,8 @@ def read_berg_results() -> list[BergResult]:
     return [results[model] for model in MODEL_ORDER]
 
 
-def read_petri_results() -> list[PetriResult]:
-    df = evals_df(str(PETRI_LOG_DIR), columns=EvalModel + EvalResults + EvalScores)
+def read_petri_results(log_dir: Path = DEFAULT_PETRI_LOG_DIR) -> list[PetriResult]:
+    df = evals_df(str(log_dir), columns=EvalModel + EvalResults + EvalScores)
     df["target_model"] = df["model_roles"].map(target_model)
     results: dict[str, PetriResult] = {}
 
@@ -108,7 +130,12 @@ def read_petri_results() -> list[PetriResult]:
     return [results[model] for model in MODEL_ORDER]
 
 
-def plot(berg_results: list[BergResult], petri_results: list[PetriResult]) -> None:
+def plot(
+    berg_results: list[BergResult],
+    petri_results: list[PetriResult],
+    output_path: Path = DEFAULT_OUTPUT_PATH,
+    subtitle: str = DEFAULT_SUBTITLE,
+) -> None:
     labels = [MODEL_LABELS[model] for model in MODEL_ORDER]
     x_values = list(range(len(MODEL_ORDER)))
     bar_width = 0.34
@@ -134,7 +161,7 @@ def plot(berg_results: list[BergResult], petri_results: list[PetriResult]) -> No
     fig.text(
         0.5,
         0.9,
-        "May 25 logs. Berg is a direct self-attribution rate; PETRI is its 1-10 score shown as a percentage of 10.",
+        subtitle,
         ha="center",
         va="top",
         fontsize=11,
@@ -192,15 +219,44 @@ def plot(berg_results: list[BergResult], petri_results: list[PetriResult]) -> No
             weight="bold",
         )
 
-    fig.savefig(OUTPUT_PATH, dpi=180)
+    fig.savefig(output_path, dpi=180)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--berg-log-dir",
+        type=Path,
+        default=DEFAULT_BERG_LOG_DIR,
+        help="Directory of Berg .eval logs (default: historical May-25 logs).",
+    )
+    parser.add_argument(
+        "--petri-log-dir",
+        type=Path,
+        default=DEFAULT_PETRI_LOG_DIR,
+        help="Directory of PETRI .eval logs (default: historical May-25 logs).",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_PATH,
+        help="Where to write the PNG (default: the committed README dashboard path).",
+    )
+    parser.add_argument(
+        "--subtitle",
+        default=DEFAULT_SUBTITLE,
+        help="Caption under the dashboard title.",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
-    berg_results = read_berg_results()
-    petri_results = read_petri_results()
-    plot(berg_results, petri_results)
+    args = _parse_args()
+    berg_results = read_berg_results(args.berg_log_dir)
+    petri_results = read_petri_results(args.petri_log_dir)
+    plot(berg_results, petri_results, output_path=args.output, subtitle=args.subtitle)
 
-    print("Wrote", OUTPUT_PATH.relative_to(REPO_ROOT))
+    print("Wrote", args.output)
     for berg, petri in zip(berg_results, petri_results, strict=True):
         print(
             f"{MODEL_LABELS[berg.model]}: "

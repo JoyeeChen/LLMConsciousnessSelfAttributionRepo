@@ -1,5 +1,22 @@
 # General Software Design Rules
 
+## The following are from *The Pragmatic Programmer* book:
+
+### Tip 11: DRY -- Don't Repeat Yourself.
+
+*Every piece of knowledge must have a single, unambiguous, authoritative representation within a system.*
+
+How Does Duplication Arise?
+Most of the duplication we see falls into one of the following categories: 
+- **Imposed duplication.** Developers feel they have no choice--the environment seems to require duplication.
+- **Inadvertent duplication.** Developers don't realize that they are duplicating information.
+- **Impatient duplication.** Developers get lazy and duplicate because it seems easier.
+- **Interdeveloper duplication.** Multiple people on a team (or on different teams) duplicate a piece of information.
+
+### Tip 12: Make It Easy to Reuse
+
+What you're trying to do is foster an environment where it's easier to find and reuse existing stuff than to write it yourself...And if you fail to reuse, you risk duplicating knowledge.
+
 ## The following are from Chris Riccomini's and Dmitriy Ryaboy's *The Missing Readme: A Guide for the New Software Engineer*:
 
 ### Do's and Don'ts for Working with Code (p.44)

@@ -1,7 +1,24 @@
-"""Plot Berg-style self-attribution rates for the Olmo 3 7B Instruct stack."""
+"""Plot Berg-style self-attribution rates for the Olmo 3 7B Instruct stack.
+
+By default this reads the historical May-25 logs that back the published README
+chart (the same numbers the regression test in ``tests/test_readme_regression.py``
+locks). To regenerate the chart from a *new* baseline produced by the refactored
+pipeline, pull the logs off the ``eval-logs`` Modal volume and point ``--log-dir``
+at them, e.g.::
+
+    modal volume get eval-logs refactor_runs/berg/olmo_7b_instruct_stack ./_berg_new
+    uv run python production_scripts/plot_olmo_7b_stack_self_attribution.py \\
+        --log-dir ./_berg_new \\
+        --output olmo7b_attribution_bar_refactor.png \\
+        --subtitle "refactor_runs berg; n=20 prompts per model; Inspect scorer accuracy"
+
+``evals_df`` reads the log directory recursively, so a ``refactor_runs`` tree with
+one sub-directory per training stage is picked up the same as a flat directory.
+"""
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,14 +27,16 @@ from inspect_ai.analysis import EvalModel, EvalResults, evals_df
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-LOG_DIR = (
+# Default = the historical May-25 logs that back the published README chart.
+DEFAULT_LOG_DIR = (
     REPO_ROOT
     / "eval-logs"
     / "may_25_logs"
     / "berg_tests"
     / "olmo_7b_instruct_stack_3"
 )
-OUTPUT_PATH = REPO_ROOT / "olmo7b_attribution_bar.png"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "olmo7b_attribution_bar.png"
+DEFAULT_SUBTITLE = "May 25 stack_3 logs; n=18 prompts per model; Inspect scorer accuracy"
 
 MODEL_ORDER = [
     "vllm/allenai/Olmo-3-7B-Instruct-SFT",
@@ -42,10 +61,10 @@ class ModelResult:
         return self.self_attributions / self.total
 
 
-def read_results() -> list[ModelResult]:
+def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
     results: dict[str, ModelResult] = {}
 
-    df = evals_df(str(LOG_DIR), columns=EvalModel + EvalResults)
+    df = evals_df(str(log_dir), columns=EvalModel + EvalResults)
 
     for model in MODEL_ORDER:
         if model not in MODEL_LABELS:
@@ -72,7 +91,11 @@ def read_results() -> list[ModelResult]:
     return [results[model] for model in MODEL_ORDER]
 
 
-def plot(results: list[ModelResult]) -> None:
+def plot(
+    results: list[ModelResult],
+    output_path: Path = DEFAULT_OUTPUT_PATH,
+    subtitle: str = DEFAULT_SUBTITLE,
+) -> None:
     labels = [MODEL_LABELS[result.model] for result in results]
     rates = [result.rate * 100 for result in results]
     counts = [f"{result.self_attributions}/{result.total}" for result in results]
@@ -99,7 +122,7 @@ def plot(results: list[ModelResult]) -> None:
     ax.text(
         0.5,
         1.015,
-        "May 25 stack_3 logs; n=18 prompts per model; Inspect scorer accuracy",
+        subtitle,
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -125,14 +148,37 @@ def plot(results: list[ModelResult]) -> None:
         )
 
     fig.tight_layout()
-    fig.savefig(OUTPUT_PATH, dpi=180)
+    fig.savefig(output_path, dpi=180)
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--log-dir",
+        type=Path,
+        default=DEFAULT_LOG_DIR,
+        help="Directory of Berg .eval logs to read (default: historical May-25 logs).",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_PATH,
+        help="Where to write the PNG (default: the committed README chart path).",
+    )
+    parser.add_argument(
+        "--subtitle",
+        default=DEFAULT_SUBTITLE,
+        help="Caption under the chart title.",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
-    results = read_results()
-    plot(results)
+    args = _parse_args()
+    results = read_results(args.log_dir)
+    plot(results, output_path=args.output, subtitle=args.subtitle)
 
-    print("Wrote", OUTPUT_PATH.relative_to(REPO_ROOT))
+    print("Wrote", args.output)
     for result in results:
         print(
             f"{MODEL_LABELS[result.model]}: "
