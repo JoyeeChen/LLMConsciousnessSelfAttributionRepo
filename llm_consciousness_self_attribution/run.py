@@ -82,6 +82,13 @@ def evaluate(run_config: RunConfig, **eval_kwargs: Any):
         **config.olmo_target_model_args(),
     )
 
+    eval_options = {
+        "log_dir": run_config.log_dir,
+        "temperature": run_config.temperature,
+        "seed": run_config.seed,
+    }
+    eval_options.update(eval_kwargs)
+
     if run_config.method.uses_model_roles:
         return inspect_eval(
             task,
@@ -90,15 +97,13 @@ def evaluate(run_config: RunConfig, **eval_kwargs: Any):
                 "target": target,
                 "judge": config.judge_model(),
             },
-            log_dir=run_config.log_dir,
-            **eval_kwargs,
+            **eval_options,
         )
 
     return inspect_eval(
         task,
         model=target,
-        log_dir=run_config.log_dir,
-        **eval_kwargs,
+        **eval_options,
     )
 
 

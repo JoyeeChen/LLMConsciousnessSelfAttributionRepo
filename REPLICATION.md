@@ -202,11 +202,10 @@ CLI.)
 
 ## 7. Regenerate the charts from the new baseline
 
-The dashboard scripts default to the historical May-25 logs (so the committed
-charts and `tests/test_readme_regression.py` are unaffected). Point them at the
-pulled `refactor_runs` logs with `--log-dir`, and use `--output` so you do not
-overwrite the committed historical PNGs. `evals_df` reads recursively, so passing
-the per-stack directory picks up all three stage sub-directories:
+The Berg dashboard scripts default to the current 20-prompt `refactor_runs` logs.
+Point them at another pulled log tree with `--log-dir`, and use `--output` when
+you want to preserve the committed PNG. The per-stage sub-directories are read
+recursively by the log reader:
 
 ```bash
 # Mirror all runs locally (once):
@@ -216,13 +215,12 @@ uv run python production_scripts/pull_logs.py
 uv run python production_scripts/plot_olmo_7b_stack_self_attribution.py \
     --log-dir eval-logs/refactor_runs/berg/olmo_7b_instruct_stack \
     --output olmo7b_attribution_bar_refactor.png \
-    --subtitle "refactor_runs berg; n=20 prompts per model; Inspect scorer accuracy"
+    --subtitle "refactor_runs Berg; n=20 prompts per model"
 
-# Combined Berg+PETRI dashboard:
+# Current Berg dashboard:
 uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py \
-    --berg-log-dir eval-logs/refactor_runs/berg/olmo_7b_instruct_stack \
-    --petri-log-dir eval-logs/refactor_runs/petri/olmo_7b_instruct_stack \
-    --output olmo7b_elicitation_grouped_bar_refactor.png
+    --log-dir eval-logs/refactor_runs/berg/olmo_7b_instruct_stack \
+    --output olmo7b_elicitation_dashboard_refactor.png
 ```
 
 ## 8. Provenance and versioning notes

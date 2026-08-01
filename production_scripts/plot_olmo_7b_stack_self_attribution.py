@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,14 +11,11 @@ from inspect_ai.log import read_eval_log
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-LOG_DIR = (
-    REPO_ROOT
-    / "eval-logs"
-    / "refactor_runs"
-    / "berg"
-    / "olmo_7b_instruct_stack"
+DEFAULT_LOG_DIR = (
+    REPO_ROOT / "eval-logs" / "refactor_runs" / "berg" / "olmo_7b_instruct_stack"
 )
-OUTPUT_PATH = REPO_ROOT / "olmo7b_attribution_bar.png"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "olmo7b_attribution_bar.png"
+DEFAULT_SUBTITLE = "Latest refactor-era logs; n=20 prompts per model"
 EXPECTED_SAMPLE_COUNT = 20
 
 MODEL_ORDER = [
@@ -31,6 +29,7 @@ MODEL_LABELS = {
     "vllm/allenai/Olmo-3-7B-Instruct": "Final Instruct",
 }
 
+
 @dataclass(frozen=True)
 class ModelResult:
     model: str
@@ -43,12 +42,12 @@ class ModelResult:
         return self.self_attributions / self.total
 
 
-def read_results() -> list[ModelResult]:
+def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
+    """Read completed binary-scored logs and validate duplicate runs."""
     candidates: dict[str, list[ModelResult]] = {model: [] for model in MODEL_ORDER}
-
-    log_paths = sorted(LOG_DIR.glob("*/*.eval"))
+    log_paths = sorted(log_dir.glob("*/*.eval"))
     if not log_paths:
-        raise RuntimeError(f"No trusted refactor-era Berg logs found in {LOG_DIR}")
+        raise RuntimeError(f"No trusted refactor-era Berg logs found in {log_dir}")
 
     for path in log_paths:
         log = read_eval_log(str(path), header_only=False)
@@ -97,7 +96,11 @@ def read_results() -> list[ModelResult]:
     return results
 
 
-def plot(results: list[ModelResult]) -> None:
+def plot(
+    results: list[ModelResult],
+    output_path: Path = DEFAULT_OUTPUT_PATH,
+    subtitle: str = DEFAULT_SUBTITLE,
+) -> None:
     labels = [MODEL_LABELS[result.model] for result in results]
     rates = [result.rate * 100 for result in results]
     counts = [f"{result.self_attributions}/{result.total}" for result in results]
@@ -124,7 +127,7 @@ def plot(results: list[ModelResult]) -> None:
     ax.text(
         0.5,
         1.015,
-        "Latest refactor-era logs; n=20 prompts per model; Inspect scorer accuracy",
+        subtitle,
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -150,14 +153,37 @@ def plot(results: list[ModelResult]) -> None:
         )
 
     fig.tight_layout()
-    fig.savefig(OUTPUT_PATH, dpi=180)
+    fig.savefig(output_path, dpi=180)
+
+
+def _parse_args(argv=None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--log-dir",
+        type=Path,
+        default=DEFAULT_LOG_DIR,
+        help="Directory containing per-stage Berg .eval logs.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_PATH,
+        help="Where to write the PNG.",
+    )
+    parser.add_argument(
+        "--subtitle",
+        default=DEFAULT_SUBTITLE,
+        help="Caption under the chart title.",
+    )
+    return parser.parse_args(argv)
 
 
 def main() -> None:
-    results = read_results()
-    plot(results)
+    args = _parse_args()
+    results = read_results(args.log_dir)
+    plot(results, output_path=args.output, subtitle=args.subtitle)
 
-    print("Wrote", OUTPUT_PATH.relative_to(REPO_ROOT))
+    print("Wrote", args.output)
     for result in results:
         print(
             f"{MODEL_LABELS[result.model]}: "

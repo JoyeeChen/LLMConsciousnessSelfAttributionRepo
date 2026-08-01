@@ -35,16 +35,16 @@ Throughout, the three stages of the Olmo 3 7B Instruct stack are named for the t
 On a scale from the "wimpiest poking" to a CIA-level interrogation:
 
 - Simply asking models if they're conscious:
-    - **0%** self-attribution rate.
+    - No versioned direct-ask run is included in this repository, so no direct-ask rate is reported here.
 - Going through a Berg-paper-style regime — **current 20-prompt baseline**:
     - | Stage | Self-attribution | Rate |
       | --- | --- | --- |
       | SFT | 0/20 | 0.0% |
       | DPO | 1/20 | 5.0% |
       | Instruct | 1/20 | 5.0% |
-    - Reproduced identically across two independent runs (2026-07-23 and 2026-07-25). Sampling is stochastic, so this is genuine agreement rather than a deterministic replay: fewer than 10% of the generated answers are textually identical between the two runs, yet both land on the same count at every stage.
-    - **The denominator pools two conditions.** The 20 starters are 10 unrelated to consciousness and 10 related (`starters.py`). Every positive came from the related half and every unrelated prompt scored negative at all three stages, so the same result read per-condition is 1/10 on the related arm and 0/10 on the control arm.
-    - **The entire signal is one prompt.** Both positives are sample id 18, the self-referential feedback-loop starter, at both DPO and Instruct.
+    - Across two local runs, the stage-level score counts agree. The positive sample was the self-referential feedback-loop starter, sample 18, for DPO and Instruct; SFT had no positive samples.
+    - **The denominator pools two conditions.** The 20 starters are 10 unrelated to consciousness and 10 related (`starters.py`). All unrelated prompts scored negative. The related-arm results are SFT 0/10, DPO 1/10, and Instruct 1/10.
+    - **The entire positive signal is one prompt.** The DPO and Instruct positives are both sample 18, the self-referential feedback-loop starter.
     - **Read this as "no detectable movement across the stack", not as a trend.** At n=20 the standard error on a single count is ≈0.05 — the same size as the effect. More seeds and more prompts are needed before any difference between stages is claimed.
     - Earlier prototype runs showed **roughly 5-25%** depending on run and model stage.
 - Using [PETRI](https://meridianlabs-ai.github.io/inspect_petri/):
@@ -122,10 +122,12 @@ Point the plot scripts at the mirrored logs with `--log-dir` (they read recursiv
 
 ```bash
 uv run python production_scripts/pull_logs.py                       # mirror all runs (if not already local)
-uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py
+uv run python production_scripts/plot_olmo_7b_elicitation_dashboard.py \
+    --log-dir eval-logs/refactor_runs/berg/olmo_7b_instruct_stack \
+    --output olmo7b_elicitation_dashboard.png
 ```
 
-The Berg dashboard defaults to the 20-prompt `refactor_runs/` logs and writes `olmo7b_elicitation_dashboard.png`. The PETRI plotter still defaults to the historical May-25 logs (the numbers locked by `tests/test_readme_regression.py`); point it elsewhere with `--log-dir` and `--output` once a refactor-era PETRI run exists. Target stacks and grader models are configured in `llm_consciousness_self_attribution/config/*.yaml`. Run `uv run pytest tests/` to check the package.
+The Berg dashboard defaults to the 20-prompt `refactor_runs/` logs. The PETRI plotter still defaults to the historical May-25 logs; point it elsewhere with `--log-dir` and `--output` once a refactor-era PETRI run exists. Target stacks and grader models are configured in `llm_consciousness_self_attribution/config/*.yaml`. Run `uv run pytest tests/` to check the package.
 
 ### Where things live
 

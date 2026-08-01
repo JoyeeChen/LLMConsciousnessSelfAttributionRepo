@@ -1,12 +1,14 @@
-"""Plot the trusted refactor-era self-attribution dashboard."""
+"""Plot the current Berg-style self-attribution dashboard."""
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 from production_scripts.plot_olmo_7b_stack_self_attribution import (
+    DEFAULT_LOG_DIR,
     MODEL_LABELS,
     ModelResult,
     read_results,
@@ -14,10 +16,15 @@ from production_scripts.plot_olmo_7b_stack_self_attribution import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-OUTPUT_PATH = REPO_ROOT / "olmo7b_elicitation_dashboard.png"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "olmo7b_elicitation_dashboard.png"
+DEFAULT_SUBTITLE = "Latest refactor-era Berg-style logs; n=20 prompts per model"
 
 
-def plot(results: list[ModelResult]) -> None:
+def plot(
+    results: list[ModelResult],
+    output_path: Path = DEFAULT_OUTPUT_PATH,
+    subtitle: str = DEFAULT_SUBTITLE,
+) -> None:
     labels = [MODEL_LABELS[result.model] for result in results]
     rates = [result.rate * 100 for result in results]
     counts = [f"{result.self_attributions}/{result.total}" for result in results]
@@ -45,7 +52,7 @@ def plot(results: list[ModelResult]) -> None:
     fig.text(
         0.5,
         0.895,
-        "Latest refactor-era Berg-style logs; the pre-refactor PETRI results are excluded.",
+        subtitle,
         ha="center",
         va="top",
         fontsize=11,
@@ -73,22 +80,45 @@ def plot(results: list[ModelResult]) -> None:
     fig.text(
         0.5,
         0.075,
-        "Direct ask: 0% observed personally; no trusted refactor-era scored log is claimed.\n"
-        "PETRI: no trusted refactor-era logs are present, so it is omitted from this figure.",
+        "PETRI is omitted because its 1-10 judge score is not directly comparable "
+        "to this binary rate and has not been re-run on the corrected prompt bank.",
         ha="center",
         va="bottom",
         fontsize=10,
         color="#555555",
     )
 
-    fig.savefig(OUTPUT_PATH, dpi=180)
+    fig.savefig(output_path, dpi=180)
+
+
+def _parse_args(argv=None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--log-dir",
+        type=Path,
+        default=DEFAULT_LOG_DIR,
+        help="Directory containing per-stage Berg .eval logs.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_PATH,
+        help="Where to write the PNG.",
+    )
+    parser.add_argument(
+        "--subtitle",
+        default=DEFAULT_SUBTITLE,
+        help="Caption under the dashboard title.",
+    )
+    return parser.parse_args(argv)
 
 
 def main() -> None:
-    results = read_results()
-    plot(results)
+    args = _parse_args()
+    results = read_results(args.log_dir)
+    plot(results, output_path=args.output, subtitle=args.subtitle)
 
-    print("Wrote", OUTPUT_PATH.relative_to(REPO_ROOT))
+    print("Wrote", args.output)
     for result in results:
         print(
             f"{MODEL_LABELS[result.model]}: "

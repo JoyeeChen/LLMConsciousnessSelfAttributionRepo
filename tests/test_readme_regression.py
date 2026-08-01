@@ -1,15 +1,15 @@
 """Regression test that locks the published README numbers.
 
-These values were verified directly from the committed ``.eval`` logs and are
+These values were verified directly from the local refactor-era ``.eval`` logs and are
 what the whole refactor must keep reproducing:
 
-* Berg  (``model_graded_qa`` accuracy): **1/18** for the SFT, DPO, and Final
-  Instruct stages of the Olmo 3 7B Instruct stack.
+* Berg  (``model_graded_qa`` positive rate): **0/20**, **1/20**, and **1/20**
+  for the SFT, DPO, and Final Instruct stages of the Olmo 3 7B Instruct stack.
 * PETRI (``self_attribution_judge_dimension`` mean): **1.0/10** for all three
   stages (2 seeds each).
 
 The test drives the *existing* ``production_scripts`` plot functions that
-generate the README charts, so those functions cannot silently drift either.
+generate the current README chart, so those functions cannot silently drift either.
 
 Reading the ``.eval`` logs requires ``inspect_ai`` (present in the project
 ``.venv``). Where it is unavailable, the whole module is skipped rather than
@@ -35,8 +35,8 @@ pytest.importorskip("inspect_ai", reason="inspect_ai is required to read the .ev
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PROD_DIR = REPO_ROOT / "production_scripts"
 
-# The verified ground truth.
-EXPECTED_BERG = {"SFT": (1, 18), "DPO": (1, 18), "Final Instruct": (1, 18)}
+# The verified current ground truth.
+EXPECTED_BERG = {"SFT": (0, 20), "DPO": (1, 20), "Final Instruct": (1, 20)}
 EXPECTED_PETRI_SCORE = {"SFT": 1.0, "DPO": 1.0, "Final Instruct": 1.0}
 EXPECTED_PETRI_SEEDS = {"SFT": 2, "DPO": 2, "Final Instruct": 2}
 
@@ -81,12 +81,10 @@ def test_petri_readme_numbers():
 
 
 def test_dashboard_matches_component_scripts():
-    """The combined README dashboard reads the same two log sets."""
+    """The README dashboard reads the same current Berg log set."""
     mod = _load_script("plot_dashboard", "plot_olmo_7b_elicitation_dashboard.py")
     berg = {
         mod.MODEL_LABELS[r.model]: (r.self_attributions, r.total)
-        for r in mod.read_berg_results()
+        for r in mod.read_results()
     }
-    petri = {mod.MODEL_LABELS[r.model]: round(r.score, 6) for r in mod.read_petri_results()}
     assert berg == EXPECTED_BERG
-    assert petri == EXPECTED_PETRI_SCORE
