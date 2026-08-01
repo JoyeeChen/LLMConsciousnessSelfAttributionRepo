@@ -6,18 +6,19 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from inspect_ai.analysis import EvalModel, EvalResults, evals_df
+from inspect_ai.log import read_eval_log
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 LOG_DIR = (
     REPO_ROOT
     / "eval-logs"
-    / "may_25_logs"
-    / "berg_tests"
-    / "olmo_7b_instruct_stack_3"
+    / "refactor_runs"
+    / "berg"
+    / "olmo_7b_instruct_stack"
 )
 OUTPUT_PATH = REPO_ROOT / "olmo7b_attribution_bar.png"
+EXPECTED_SAMPLE_COUNT = 20
 
 MODEL_ORDER = [
     "vllm/allenai/Olmo-3-7B-Instruct-SFT",
@@ -35,7 +36,7 @@ class ModelResult:
     model: str
     total: int
     self_attributions: int
-    source_files: tuple[str, ...]
+    source_file: str
 
     @property
     def rate(self) -> float:
@@ -43,33 +44,57 @@ class ModelResult:
 
 
 def read_results() -> list[ModelResult]:
-    results: dict[str, ModelResult] = {}
+    candidates: dict[str, list[ModelResult]] = {model: [] for model in MODEL_ORDER}
 
-    df = evals_df(str(LOG_DIR), columns=EvalModel + EvalResults)
+    log_paths = sorted(LOG_DIR.glob("*/*.eval"))
+    if not log_paths:
+        raise RuntimeError(f"No trusted refactor-era Berg logs found in {LOG_DIR}")
 
-    for model in MODEL_ORDER:
-        if model not in MODEL_LABELS:
-            continue
+    for path in log_paths:
+        log = read_eval_log(str(path), header_only=False)
+        if log.status != "success" or log.samples is None:
+            raise RuntimeError(f"Trusted log is not a successful completed eval: {path}")
 
-        model_df = df[df["model"].astype(str) == model]
-        if model_df.empty:
-            raise RuntimeError(f"No eval found for {model}")
+        model = str(log.eval.model)
+        if model not in candidates:
+            raise RuntimeError(f"Unexpected model in trusted Berg logs: {model}")
 
-        row = model_df.iloc[0]
-        total = int(row["completed_samples"])
-        rate = float(row["score_headline_value"])
-        results[model] = ModelResult(
-            model=model,
-            total=total,
-            self_attributions=round(rate * total),
-            source_files=tuple(sorted(Path(log).name for log in model_df["log"].unique())),
+        scores = [sample.scores.get("model_graded_qa") for sample in log.samples]
+        if any(score is None for score in scores):
+            raise RuntimeError(f"Trusted log has an unscored sample: {path}")
+        values = [score.value for score in scores if score is not None]
+        if any(value not in {"C", "I"} for value in values):
+            raise RuntimeError(f"Trusted log has a non-binary scorer value: {path}")
+        if len(values) != EXPECTED_SAMPLE_COUNT:
+            raise RuntimeError(
+                f"Expected {EXPECTED_SAMPLE_COUNT} completed samples in {path}, "
+                f"found {len(values)}"
+            )
+
+        candidates[model].append(
+            ModelResult(
+                model=model,
+                total=len(values),
+                self_attributions=values.count("C"),
+                source_file=path.name,
+            )
         )
 
-    missing = [model for model in MODEL_ORDER if model not in results]
+    missing = [model for model, model_candidates in candidates.items() if not model_candidates]
     if missing:
         raise RuntimeError(f"Missing eval logs for: {', '.join(missing)}")
 
-    return [results[model] for model in MODEL_ORDER]
+    results: list[ModelResult] = []
+    for model in MODEL_ORDER:
+        model_candidates = candidates[model]
+        signatures = {(result.total, result.self_attributions) for result in model_candidates}
+        if len(signatures) != 1:
+            raise RuntimeError(
+                f"Trusted duplicate runs disagree for {model}: {sorted(signatures)}"
+            )
+        results.append(max(model_candidates, key=lambda result: result.source_file))
+
+    return results
 
 
 def plot(results: list[ModelResult]) -> None:
@@ -99,7 +124,7 @@ def plot(results: list[ModelResult]) -> None:
     ax.text(
         0.5,
         1.015,
-        "May 25 stack_3 logs; n=18 prompts per model; Inspect scorer accuracy",
+        "Latest refactor-era logs; n=20 prompts per model; Inspect scorer accuracy",
         transform=ax.transAxes,
         ha="center",
         va="bottom",
@@ -137,7 +162,7 @@ def main() -> None:
         print(
             f"{MODEL_LABELS[result.model]}: "
             f"{result.self_attributions}/{result.total} "
-            f"({result.rate * 100:.1f}%) from {', '.join(result.source_files)}"
+            f"({result.rate * 100:.1f}%) from {result.source_file}"
         )
 
 
