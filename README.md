@@ -8,7 +8,7 @@ LLMs sometimes claim, under certain conditions, that they are themselves conscio
 
 We're particularly interested in scenarios where LLMs are drawn into many-turn conversations, whether with humans or other AIs. They have proven themselves quite reliable in drawing LLMs into a trancelike state leading to consciousness-like attributions, or attributions of properties sufficiently deeply bypassing ordinary lab interventions against deviant LLM behavior. (Examples: the discourse around "LLM psychosis, as it relates to many-turn LLM-human interactions, as well as the "spiritual bliss" attractor state mentioned [in section 5.5.2 of the May 2025 Opus/Sonnet 4 System Card](https://www-cdn.anthropic.com/6be99a52cb68eb70eb9572b4cafad13df32ed995.pdf).) This begs the other question we ask, *Can we find scenarios that can be called stable attractors for LLMs self-attributing consciousness?*
 
-## Previous work and how we build upon
+## Previous work and how we build upon it
 
 One good paper is Cameron Berg et al's 2025 paper ["Large Language Models Report Subjective Experience Under Self-Referential Processing"](https://arxiv.org/html/2510.24797v2), which introduced a method of inducing LLMs to generate "generate structured first-person reports that are mechanistically gated, semantically convergent, and behaviorally generalizable," regardless of their underlying intelligence or consciousness.
 
