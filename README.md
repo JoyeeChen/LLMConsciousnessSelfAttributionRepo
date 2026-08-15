@@ -22,6 +22,16 @@ Consider even the training of a small, open-source model, the [Olmo 3 training f
 
 Each of those stages can affect the motivations behind self-attributing consciousness!
 
+## What definitions of "consciousness" do we operationally use?
+
+Some of our work (especially in the primitive stages) will involve asking the model directly if it thinks it's conscious or not, or more complex conversations by which the model can be persuaded to admit its own consciousness or not using a definition of consciousness that during the course of the conversation could be agreed upon by the model and the user/probe. So in some basic sense, the particular definition of "consciousness" doesn't quite matter in the project, only how it can be constructed and construed. Yet further explorations will have to interact in multiple ways with the prevailing definitions of consciousness: we might find it helpful to categorize which "paths to consciousness" lead to particularly effective or interesting elicitations, or disqualify particular "paths to consciousness" as being too far from our commonsense understandings, etc. 
+
+Given there are many different and likely competing definitions resulting from competing theories, we feel the best working definition of "consciousness" to use in our evals is from Box 1: Defining 'consciousness' in [Identifying indicators of consciousness in AI systems](https://www.sciencedirect.com/science/article/pii/S1364661325002864):
+
+> By 'consciousness' we mean phenomenal consciousness. One way of gesturing at this concept is to say that an entity has phenomenally conscious experiences if (and only if) there is 'something it is like' for the entity to be the subject of these experiences.
+
+But as the paper's authors themselves claim in that box, there are multiple diverging opinions including about the legitimacy of phenomenal consciousness itself, so flexibility may be applied to the use of this definition.
+
 ## The dashboard of attribution elicitation methods
 
 Here below is a dashboard of the ways we've tried to get LLMs to claim they're conscious themselves.
