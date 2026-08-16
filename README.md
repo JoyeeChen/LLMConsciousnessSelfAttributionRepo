@@ -116,7 +116,15 @@ The two methods keep their questions in different places, because Berg-style is 
 | Berg-style | the starters and the probe question in `llm_consciousness_self_attribution/starters.py` | edit that file, then update the counts in `tests/test_starters.py` and `tests/test_methods.py` |
 | PETRI | one `.md` file per line of questioning in `llm_consciousness_self_attribution/seeds/self_attribution/` | add a file. No Python, no config, no test change. |
 
-**Every seed in the bank runs on every PETRI run.** There is no flag or config for running some seeds and not others, which is a deliberate omission rather than a gap in this document. To run a subset, move the seeds you do not want out of the bank directory.
+**By default every seed in the bank runs.** To run some and not others, pass `--sample-id`, which is inspect's own dataset filter rather than anything this repo invented. A PETRI sample id is the seed's filename stem, so trying one new probe on one stage before paying for a full sweep looks like this:
+
+```bash
+uv run python production_scripts/run_and_pull.py \
+    --method petri --stack olmo_7b_instruct_stack --stages sft \
+    --sample-id commit_direct
+```
+
+Comma-separate for several, and `fnmatch` patterns work, so `--sample-id 'admit_*'` runs every seed whose name starts with `admit`. One caveat worth knowing: inspect only *warns* when an id matches nothing, so a typo produces a run with fewer samples than you expected rather than an error. Read the run's output rather than assuming a mistake would have stopped it.
 
 Before adding a PETRI seed, read [`llm_consciousness_self_attribution/seeds/README.md`](llm_consciousness_self_attribution/seeds/README.md), which sits next to the bank and is the single source of truth for the file format and for the one case where a new probe needs its own judge rubric.
 

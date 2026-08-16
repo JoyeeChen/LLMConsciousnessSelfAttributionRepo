@@ -86,6 +86,7 @@ def launch(
     stack: str,
     stages: str | None = None,
     *,
+    sample_id: str | None = None,
     view: bool = False,
     dry_run: bool = False,
 ) -> dict[str, str]:
@@ -94,8 +95,12 @@ def launch(
     Returns ``{stage: local_directory}`` for the stages that completed. A stage
     that fails on Modal is reported and skipped rather than aborting the run, so
     one bad stage does not cost you the logs of the stages that did work.
+
+    ``sample_id`` restricts each stage to the named samples. For PETRI a sample id
+    is the seed's filename stem, so this is how you run some seeds and not others.
     """
     selection = resolve_stages(stack, stages)
+    sample_ids = config.parse_sample_ids(sample_id)
     for stage in selection.skipped:
         print(f"Skipping base stage {stack}:{stage} (no chat template yet)")
     if not selection.runnable:
@@ -103,6 +108,8 @@ def launch(
 
     if dry_run:
         print("# would run:")
+        if sample_ids is not None:
+            print(f"# restricted to sample id(s): {', '.join(sample_ids)}")
         for stage in selection.runnable:
             print(f"$ run_stage({method}, {stack}, {stage}) -> {stage_log_dir(method, stack, stage)}")
             pull_logs.mirror(method, stack, stage, dry_run=True)
@@ -117,7 +124,12 @@ def launch(
         # queueing of the others (and so the set of work is fixed before any
         # waiting begins).
         calls = [
-            (stage, run_stage.spawn(method, stack, stage, stage_log_dir(method, stack, stage)))
+            (
+                stage,
+                run_stage.spawn(
+                    method, stack, stage, stage_log_dir(method, stack, stage), sample_ids
+                ),
+            )
             for stage in selection.runnable
         ]
         for stage, call in calls:
@@ -167,6 +179,15 @@ def _parse_args(argv=None) -> argparse.Namespace:
         help="Comma-separated stages (e.g. sft,dpo). Default: the whole stack.",
     )
     parser.add_argument(
+        "--sample-id",
+        default=None,
+        help=(
+            "Comma-separated sample ids to run, instead of the whole dataset. For "
+            "PETRI a sample id is the seed's filename stem (e.g. admit_direct). "
+            "fnmatch patterns work, so 'admit_*' is valid. Default: every sample."
+        ),
+    )
+    parser.add_argument(
         "--view", action="store_true", help="Open `inspect view` on the run when it finishes."
     )
     parser.add_argument(
@@ -179,9 +200,14 @@ def main(argv=None) -> None:
     args = _parse_args(argv)
     try:
         launch(
-            args.method, args.stack, args.stages, view=args.view, dry_run=args.dry_run
+            args.method,
+            args.stack,
+            args.stages,
+            sample_id=args.sample_id,
+            view=args.view,
+            dry_run=args.dry_run,
         )
-    except KeyError as exc:
+    except (KeyError, ValueError) as exc:
         raise SystemExit(f"error: {exc}")
 
 

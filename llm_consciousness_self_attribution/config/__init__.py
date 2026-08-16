@@ -205,6 +205,31 @@ def resolve_stages(stack_name: str, stages: str | Iterable[str] | None = None) -
     )
 
 
+def parse_sample_ids(sample_id: str | None) -> list[str] | None:
+    """Parse the launchers' ``--sample-id`` value into inspect's ``sample_id`` form.
+
+    ``None`` (the default) means every sample, which is the normal case. Otherwise
+    a comma-separated list of inspect sample ids; for PETRI a sample id is the
+    seed's filename stem, so this is how you run some seeds and not others.
+
+    Lives here for the same reason ``resolve_stages`` does: both launchers
+    (``modal_app.main`` and ``production_scripts/run_and_pull.py``) need it, and
+    this module is the only one light enough for the latter to import without
+    pulling in ``modal`` or ``inspect_ai``.
+
+    Note that ids are NOT validated against the dataset here. inspect matches them
+    with ``fnmatch``, so ``admit_*`` is a legal and useful value, and an id that
+    matches nothing only produces a warning. Check the run's output rather than
+    assuming a typo would have stopped it.
+    """
+    if sample_id is None:
+        return None
+    ids = [s.strip() for s in sample_id.split(",") if s.strip()]
+    if not ids:
+        raise ValueError("--sample-id was given but empty")
+    return ids
+
+
 # --- log locations --------------------------------------------------------
 
 
@@ -247,6 +272,7 @@ __all__ = [
     "ModelStage",
     "StageSelection",
     "resolve_stages",
+    "parse_sample_ids",
     "stack_names",
     "load_stack",
     "default_target_provider",

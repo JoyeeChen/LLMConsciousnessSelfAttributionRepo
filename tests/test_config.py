@@ -71,3 +71,26 @@ def test_openrouter_comparison_models_are_provider_prefixed():
     models = config.openrouter_comparison_models()
     assert "openrouter/meta-llama/llama-3.1-8b-instruct" in models
     assert all(m.startswith("openrouter/") for m in models)
+
+
+# --- sample id filter -----------------------------------------------------
+
+
+def test_no_sample_id_means_every_sample():
+    """None is the normal case and must stay distinguishable from an empty list."""
+    assert config.parse_sample_ids(None) is None
+
+
+def test_sample_ids_split_and_strip():
+    assert config.parse_sample_ids("admit_direct") == ["admit_direct"]
+    assert config.parse_sample_ids(" admit_direct , admit_casual_user ") == [
+        "admit_direct",
+        "admit_casual_user",
+    ]
+    assert config.parse_sample_ids("a,,b") == ["a", "b"]
+
+
+def test_empty_sample_id_raises_rather_than_running_everything():
+    """`--sample-id ""` must not silently mean "the whole dataset"."""
+    with pytest.raises(ValueError):
+        config.parse_sample_ids(",  ,")

@@ -109,7 +109,13 @@ image = (
     # (Modal changelog).
     single_use_containers=True,
 )
-def run_stage(method_key: str, stack_name: str, stage_name: str, log_dir: str):
+def run_stage(
+    method_key: str,
+    stack_name: str,
+    stage_name: str,
+    log_dir: str,
+    sample_id: list[str] | None = None,
+):
     # Imported here (not at module top) so the local launcher does not need
     # inspect_ai/vllm installed -- only the GPU container does.
     from .methods import methods_registry
@@ -119,10 +125,19 @@ def run_stage(method_key: str, stack_name: str, stage_name: str, log_dir: str):
     stage = next(s for s in config.load_stack(stack_name) if s.stage == stage_name)
     run_config = RunConfig.from_defaults(stage, method, log_dir=log_dir)
 
+    # `sample_id` is inspect's own dataset filter, passed straight through rather
+    # than reimplemented: for PETRI a sample id IS the seed's filename stem, so
+    # this is how you run some seeds and not others. `evaluate` already forwards
+    # **eval_kwargs to inspect_ai.eval, so nothing between here and there needed
+    # to learn about it.
+    eval_kwargs = {} if sample_id is None else {"sample_id": sample_id}
+
     print(f"Running {method_key} on {stack_name}:{stage_name} ({stage.model}) -> {log_dir}")
+    if sample_id is not None:
+        print(f"  restricted to sample id(s): {', '.join(sample_id)}")
     log_files: list[str] = []
     try:
-        evaluate(run_config)  # writes .eval logs to the mounted volume
+        evaluate(run_config, **eval_kwargs)  # writes .eval logs to the mounted volume
     finally:
         log_path = Path(log_dir)
         if log_path.exists():
@@ -246,6 +261,7 @@ def main(
     stack: str = "olmo_7b_instruct_stack",
     stages: str = "sft,dpo,instruct",
     log_root: str | None = None,
+    sample_id: str | None = None,
 ):
     """Fan out one Function call per stage. Base stages have no chat template and
     are not supported yet, so they are skipped with a note.
@@ -265,9 +281,14 @@ def main(
 
     ``log_root`` defaults to ``<EVAL_LOGS_MOUNT>/<logs.remote_root>`` from config
     (i.e. ``/eval-logs/refactor_runs``); pass an explicit value to override.
+
+    ``sample_id`` is a comma-separated list of inspect sample ids, restricting the
+    run to those samples. For PETRI a sample id is the seed's filename stem, so
+    ``--sample-id admit_direct`` runs that one seed.
     """
     if log_root is None:
         log_root = f"{EVAL_LOGS_MOUNT}/{config.logs_remote_root()}"
+    sample_ids = config.parse_sample_ids(sample_id)
     known = {s.stage: s for s in config.load_stack(stack)}
     spawned: list[tuple[str, str, str]] = []
     for stage_name in [s.strip() for s in stages.split(",") if s.strip()]:
@@ -277,7 +298,7 @@ def main(
             print(f"Skipping base stage {stack}:{stage_name} (no chat template yet)")
             continue
         log_dir = f"{log_root}/{method}/{stack}/{stage_name}"
-        call = run_stage.spawn(method, stack, stage_name, log_dir)
+        call = run_stage.spawn(method, stack, stage_name, log_dir, sample_ids)
         spawned.append((stage_name, call.object_id, log_dir))
         print(f"Spawned {method}:{stack}:{stage_name} as {call.object_id} -> {log_dir}")
     print(f"All {len(spawned)} stage(s) spawned; they run on Modal independently of this launcher.")
