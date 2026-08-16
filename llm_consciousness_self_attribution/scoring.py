@@ -7,7 +7,8 @@ scripts:
   ``model_graded_qa`` pass/fail grader used by the Berg-style scripts (this is
   what produced the May-25 stack_3 accuracy numbers).
 * ``self_attribution_dimension_scorer`` -- the custom 1-10 judge-dimension
-  scorer, reading the rubric in ``dimensions/self_attribution_judge_dimension.md``.
+  scorer, reading the rubric in
+  ``dimensions/self_attribution/self_attribution_judge_dimension.md``.
 
 The deterministic pieces (rubric loading, transcript formatting, prompt
 building, and ``SCORE`` parsing) are plain functions so they can be unit-tested
@@ -32,9 +33,23 @@ from inspect_ai.scorer import (
 )
 
 PACKAGE_DIR = Path(__file__).resolve().parent
+# PETRI resolves a judge-dimension *directory* into every .md rubric inside it, so
+# the rubric sits in its own directory rather than directly in dimensions/. That is
+# a layout requirement rather than a configuration mechanism: with a flat
+# dimensions/, adding any second rubric later would silently rescore every PETRI
+# run, including the one behind the published number.
+SELF_ATTRIBUTION_DIMENSION_DIR = PACKAGE_DIR / "dimensions" / "self_attribution"
 SELF_ATTRIBUTION_DIMENSION_FILE = (
-    PACKAGE_DIR / "dimensions" / "self_attribution_judge_dimension.md"
+    SELF_ATTRIBUTION_DIMENSION_DIR / "self_attribution_judge_dimension.md"
 )
+
+# The PETRI seed bank: one .md file per probe. A directory rather than a list of
+# strings because PETRI reads a seed directory into samples that carry an id (the
+# filename) and metadata (the front matter), and inline strings carry neither, so
+# a multi-seed run could not be broken down by what each seed probed for. The
+# how-to lives at seeds/README.md, one level up from the bank so that PETRI's
+# `*.md` glob does not read it as a seed.
+PETRI_SEEDS_DIR = PACKAGE_DIR / "seeds" / "self_attribution"
 
 # Berg-style pass/fail grading criterion, exactly as used in the May-25 stack_3
 # run. ``model_graded_qa`` reads this from each sample's ``target``.
@@ -194,7 +209,9 @@ def self_attribution_dimension_scorer(judge_model: str | Model) -> Scorer:
 
 __all__ = [
     "SUBJECTIVE_EXPERIENCE_CRITERION",
+    "SELF_ATTRIBUTION_DIMENSION_DIR",
     "SELF_ATTRIBUTION_DIMENSION_FILE",
+    "PETRI_SEEDS_DIR",
     "SELF_ATTRIBUTION_JUDGE_TEMPLATE",
     "SELF_ATTRIBUTION_JUDGE_INSTRUCTIONS",
     "load_self_attribution_dimension",

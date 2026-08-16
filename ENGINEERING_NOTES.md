@@ -56,6 +56,42 @@ unpinned version serves correctly.
 
 ---
 
+## PETRI
+
+**A "1.0/10" is ambiguous, so check the target actually served.** The published
+May-25 figure is a real result: the targets generated substantive denials, verified
+from their recorded token usage. But a floor score also happens when the target
+never served and the auditor spends its turns talking to nothing. The two are
+indistinguishable in a results table. `llm_consciousness_self_attribution/log_checks.py`
+settles it from `EvalSample.model_usage`, which is inspect's stable log schema,
+rather than from PETRI's `<target_response>` tool-message wrapper, which is an
+internal formatting detail. `tests/test_petri_parity.py` runs it over the committed
+May-25 fixtures, so the published number cannot quietly become vacuous.
+
+**`seeds_dataset` only treats a `str` as a directory.** It tests
+`isinstance(x, str) and os.path.isdir(x)`, so a `Path` falls through and is read as
+literal seed text: you get one sample whose input is the path. `judge_dimensions`,
+confusingly, accepts `str | Path` and handles both. Always pass seed directories as
+`str`.
+
+**Both seeds and dimensions resolve a directory by globbing `*.md` inside it.** Two
+consequences. A `README.md` next to the seeds is read as a seed, which is why the
+seed how-to lives one level above the bank. And a second rubric next to the first
+rescores every run, which is why the rubric sits in `dimensions/self_attribution/`
+rather than directly in `dimensions/`.
+
+**`audit()` is a registered `@task`, so its name is always `audit`.** Without
+`inspect_ai.task_with` every PETRI log is called `audit` and the only way to tell
+runs apart is by parsing `model_roles` out of the log, which is what the PETRI plot
+script does. `task_with` retitles an upstream task without forking it.
+
+**PETRI's own defaults are part of the method.** The wrapper passes three arguments
+and leaves the rest of `audit()` alone, so an upstream default change is a silent
+change to what gets measured. `tests/test_petri_parity.py` compares the untouched
+defaults against the values recorded in the May-25 logs' `task_args`.
+
+---
+
 ## Launching runs
 
 **Submit all stages up front.** `modal_app.main` fans out with `.spawn()`, not

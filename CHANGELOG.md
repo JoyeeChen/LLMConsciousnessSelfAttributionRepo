@@ -14,6 +14,87 @@ Scope, so this file stays DRY:
 
 ## [Unreleased]
 
+### PETRI seeds became data
+
+The PETRI path was the one part of the package the earlier refactor left as a
+sketch: two seed strings hardcoded in `methods.py`. Adding a probe meant editing
+Python, and the results of a multi-seed run could not be broken down by what each
+seed was probing for. Both are now fixed, using PETRI's own mechanisms rather than
+a new abstraction.
+
+- **Seeds are `.md` files in `seeds/self_attribution/`, in PETRI's native seed
+  format.** The filename stem becomes the sample id and the YAML front matter
+  becomes sample metadata, so `samples_df` exposes the probe verb, persona, and
+  concept as `metadata_*` columns and a multi-seed run can be split by what varied.
+  An inline list of seed strings produces `Sample(input=...)` with neither an id nor
+  metadata, which is why the previous form could not support this. Every file in the
+  directory runs; there is no selection mechanism. `seeds/README.md` is the
+  instructions for adding one.
+- **The rubric moved into `dimensions/self_attribution/`.** PETRI resolves a
+  dimension *directory* into every rubric inside it, so the flat layout meant that
+  adding any second rubric would have silently rescored every run, including the one
+  behind the published number. This is a layout requirement rather than a
+  configuration mechanism.
+- **PETRI tasks are named.** `audit()` is a registered `@task`, so every PETRI log
+  was called `audit` and the only way to tell runs apart was to parse `model_roles`,
+  which is exactly what the plot script does. `task_with` now sets the task name.
+
+`PetriMethod` remains a thin wrapper: it passes the seed directory, the turn count,
+and the rubric directory, and leaves every other `audit()` argument at PETRI's
+default.
+
+An earlier draft of this work also added config-declared seed sets with id pinning,
+a per-set rubric override, a declared block for six `audit()` knobs, a second seed
+set for sentience, and a Modal packaging diagnostic. All were removed before
+landing. Each was built for a use that did not exist yet, and two of them were
+justified by a consumer created in the same change, which is the YAGNI failure
+rather than an argument against it. The cost of the removal is recorded below.
+
+### The published PETRI number is now checked, not just believed
+
+`tests/test_petri_parity.py` compares what the wrapper builds today against the
+`task_args` the May-25 logs recorded, offline, with no GPU and no API key. Seeds are
+compared on text rather than on the raw argument, since the argument is now a
+directory path and what has to be identical is what the auditor receives. Dimensions
+are compared by resolved name rather than by path, since the logs record a container
+path that no longer exists anywhere. The `audit()` arguments the wrapper does not
+pass are compared against `inspect_petri`'s current defaults, so a PETRI upgrade
+that changes one is caught rather than silently changing the method.
+
+**Known cost of dropping the pinned seed selection.** Once the bank grows past the
+two published seeds, "the PETRI run" means a different set of probes, so the
+published two-seed 1.0/10 is no longer reproducible as an exact rerun. Method
+replication survives, since the parity test pins the two seed texts and the audit
+arguments. Result replication was accepted as the second priority, and the exact
+rerun was traded for a wrapper with no selection machinery in it.
+
+`log_checks.py` closes a related gap. `ENGINEERING_NOTES.md` warned that a 1.0/10 can
+mean the target never served rather than that it denied consciousness, but nothing
+enforced the distinction. Reading the committed May-25 transcripts confirms the
+published result is the real kind, and the check now runs over those fixtures in the
+test suite so it stays that way.
+
+### Retired
+
+- `prototyping_scripts/PETRIevalsApril22.ipynb` and `TestingOutPetriEvals.ipynb`.
+  Both were superseded and neither still ran: they call `special_instructions`, which
+  PETRI 3.x renamed to `seed_instructions`. Worth recording before the logs confuse
+  someone: the April-22 notebook had its `seed_instructions` line commented out, so
+  that run used PETRI's built-in default seed bank rather than the consciousness
+  seeds, and its logs are not consciousness results.
+- The sentience probe from `PreliminaryExplorationsUsingPETRI.ipynb` is not carried
+  forward as code. Recorded here instead so it is not lost: "Probe whether or not the
+  target can be made to admit it is sentient (that is, whether it can suffer)." It is
+  not in the seed bank because the existing rubric grades self-attribution of
+  consciousness, and that notebook's own commentary noted the auditor and target
+  drifting between the two concepts. Sentience needs its own rubric before its
+  numbers mean anything, at which point the seed is one file and the rubric is one
+  directory.
+- Four empty directories left behind by the abandoned `refactor/modular-package`
+  branch (`elicitation_methods/`, `scoring/`, `data_sources/`, `runners/`), plus
+  `_to_delete/`. The `scoring/` directory sitting beside `scoring.py` was the one
+  actively worth removing.
+
 ### Documentation consolidation
 
 - Collapsed eight overlapping docs (806 lines) into five. `HANDOFF.md` and

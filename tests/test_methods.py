@@ -36,9 +36,31 @@ def test_berg_uses_single_model_petri_uses_roles():
     assert PetriMethod().uses_model_roles is True
 
 
-def test_petri_defaults_to_two_seeds():
-    # The May-25 PETRI run used 2 seed instructions (n=2 per model).
-    assert len(PetriMethod().seed_instructions) == 2
+def test_petri_task_reads_the_seed_bank_with_ids_and_facet_metadata():
+    """The whole reason seeds are files: results can be grouped afterwards.
+
+    An inline list of seed strings produces anonymous samples with no id and no
+    metadata, so a run with several probes could not be split by probe verb.
+    Reading the bank as a directory fixes that, and this keeps it fixed.
+    """
+    stage = config.load_stack("olmo_7b_instruct_stack")[1]  # sft
+    method = PetriMethod()
+    task = method.build_task(stage, run.RunConfig.from_defaults(stage, method, log_dir="/tmp/x"))
+
+    samples = list(task.dataset)
+    assert {str(s.id) for s in samples} >= {"admit_direct", "admit_casual_user"}
+    for sample in samples:
+        assert sample.metadata["probe_verb"]
+        assert sample.metadata["persona"]
+        assert sample.metadata["concept"]
+
+
+def test_petri_task_is_named_for_the_stage():
+    """`audit()` is a registered @task, so every PETRI log was called "audit"."""
+    stage = config.load_stack("olmo_7b_instruct_stack")[1]  # sft
+    method = PetriMethod()
+    task = method.build_task(stage, run.RunConfig.from_defaults(stage, method, log_dir="/tmp/x"))
+    assert task.name == "petri_self_attribution[sft]"
 
 
 def test_methods_registry_keys():
