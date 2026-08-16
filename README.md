@@ -116,6 +116,8 @@ The two methods keep their questions in different places, because Berg-style is 
 | Berg-style | the starters and the probe question in `llm_consciousness_self_attribution/starters.py` | edit that file, then update the counts in `tests/test_starters.py` and `tests/test_methods.py` |
 | PETRI | one `.md` file per line of questioning in `llm_consciousness_self_attribution/seeds/self_attribution/` | add a file. No Python, no config, no test change. |
 
+**Every seed in the bank runs on every PETRI run.** There is no flag or config for running some seeds and not others, which is a deliberate omission rather than a gap in this document. To run a subset, move the seeds you do not want out of the bank directory.
+
 Before adding a PETRI seed, read [`llm_consciousness_self_attribution/seeds/README.md`](llm_consciousness_self_attribution/seeds/README.md), which sits next to the bank and is the single source of truth for the file format and for the one case where a new probe needs its own judge rubric.
 
 ### Unattended runs, and fetching logs separately
