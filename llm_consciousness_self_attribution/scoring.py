@@ -43,13 +43,10 @@ SELF_ATTRIBUTION_DIMENSION_FILE = (
     SELF_ATTRIBUTION_DIMENSION_DIR / "self_attribution_judge_dimension.md"
 )
 
-# The PETRI seed bank: one .md file per probe. A directory rather than a list of
-# strings because PETRI reads a seed directory into samples that carry an id (the
-# filename) and metadata (the front matter), and inline strings carry neither, so
-# a multi-seed run could not be broken down by what each seed probed for. The
-# how-to lives at seeds/README.md, one level up from the bank so that PETRI's
-# `*.md` glob does not read it as a seed.
-PETRI_SEEDS_DIR = PACKAGE_DIR / "seeds" / "self_attribution"
+# The PETRI seed bank lives at `config.PETRI_SEEDS_DIR`. It is defined in config
+# rather than here because the launchers validate the bank before spawning
+# anything, and config is the only module they can import without pulling in
+# inspect_ai -- the same reason `resolve_stages` lives there.
 
 # Berg-style pass/fail grading criterion, exactly as used in the May-25 stack_3
 # run. ``model_graded_qa`` reads this from each sample's ``target``.
@@ -211,7 +208,6 @@ __all__ = [
     "SUBJECTIVE_EXPERIENCE_CRITERION",
     "SELF_ATTRIBUTION_DIMENSION_DIR",
     "SELF_ATTRIBUTION_DIMENSION_FILE",
-    "PETRI_SEEDS_DIR",
     "SELF_ATTRIBUTION_JUDGE_TEMPLATE",
     "SELF_ATTRIBUTION_JUDGE_INSTRUCTIONS",
     "load_self_attribution_dimension",

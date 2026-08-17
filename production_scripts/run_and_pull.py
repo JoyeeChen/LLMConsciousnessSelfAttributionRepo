@@ -101,6 +101,11 @@ def launch(
     """
     selection = resolve_stages(stack, stages)
     sample_ids = config.parse_sample_ids(sample_id)
+    if method.startswith("petri"):
+        # Every seed must declare the target's system prompt. Checked here, before
+        # anything is spawned, for the same reason a typo'd stage name is: the
+        # alternative is discovering it minutes into a paid GPU container.
+        config.validate_seed_bank()
     for stage in selection.skipped:
         print(f"Skipping base stage {stack}:{stage} (no chat template yet)")
     if not selection.runnable:

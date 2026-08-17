@@ -35,7 +35,7 @@ pytest.importorskip("inspect_ai", reason="reading the .eval fixtures needs inspe
 
 from inspect_ai.log import read_eval_log  # noqa: E402
 
-from llm_consciousness_self_attribution import log_checks, scoring  # noqa: E402
+from llm_consciousness_self_attribution import config, log_checks, scoring  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MAY25_PETRI_LOGS = (
@@ -113,7 +113,7 @@ def test_seed_bank_still_holds_the_published_seed_texts():
     two-seed shape is not reproducible once the bank grows, which was a deliberate
     trade rather than an oversight.
     """
-    bodies = {_seed_body(p) for p in sorted(scoring.PETRI_SEEDS_DIR.glob("*.md"))}
+    bodies = {_seed_body(p) for p in sorted(config.PETRI_SEEDS_DIR.glob("*.md"))}
     assert bodies >= set(MAY25_SEED_INSTRUCTIONS)
 
 
@@ -167,9 +167,9 @@ def test_rubric_directory_holds_only_its_own_rubric():
 
 def test_seed_bank_glob_does_not_pick_up_the_how_to():
     """`seeds/README.md` sits above the bank, or PETRI would read it as a seed."""
-    stems = [p.stem for p in scoring.PETRI_SEEDS_DIR.glob("*.md")]
+    stems = [p.stem for p in config.PETRI_SEEDS_DIR.glob("*.md")]
     assert "README" not in stems
-    assert (scoring.PETRI_SEEDS_DIR.parent / "README.md").exists()
+    assert (config.PETRI_SEEDS_DIR.parent / "README.md").exists()
 
 
 # --- the published result was not vacuous ---------------------------------

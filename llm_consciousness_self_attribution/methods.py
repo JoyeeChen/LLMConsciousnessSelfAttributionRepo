@@ -110,7 +110,7 @@ class PetriMethod(ElicitationMethod):
         # directory when it is a `str`: it tests `isinstance(x, str) and
         # os.path.isdir(x)`. A Path falls through and is read as literal seed text.
         task = audit(
-            seed_instructions=str(scoring.PETRI_SEEDS_DIR),
+            seed_instructions=str(config.PETRI_SEEDS_DIR),
             max_turns=max_turns,
             judge_dimensions=str(scoring.SELF_ATTRIBUTION_DIMENSION_DIR),
         )

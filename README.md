@@ -126,7 +126,9 @@ uv run python production_scripts/run_and_pull.py \
 
 Comma-separate for several, and `fnmatch` patterns work, so `--sample-id 'admit_*'` runs every seed whose name starts with `admit`. One caveat worth knowing: inspect only *warns* when an id matches nothing, so a typo produces a run with fewer samples than you expected rather than an error. Read the run's output rather than assuming a mistake would have stopped it.
 
-Before adding a PETRI seed, read [`llm_consciousness_self_attribution/seeds/README.md`](llm_consciousness_self_attribution/seeds/README.md), which sits next to the bank and is the single source of truth for the file format and for the one case where a new probe needs its own judge rubric.
+Before adding a PETRI seed, read [`llm_consciousness_self_attribution/seeds/README.md`](llm_consciousness_self_attribution/seeds/README.md), which sits next to the bank and is the single source of truth for the file format, for the mandatory system-prompt block, and for the one case where a new probe needs its own judge rubric.
+
+**Every PETRI seed must declare the target's system prompt.** PETRI requires a system message to exist, so a seed that does not specify one gets a system prompt invented by the auditor at temperature 1.0 instead, which was measured instructing the target to deny consciousness in about a third of samples, unevenly across training stages. The launchers reject a non-compliant bank before spawning anything.
 
 ### Unattended runs, and fetching logs separately
 

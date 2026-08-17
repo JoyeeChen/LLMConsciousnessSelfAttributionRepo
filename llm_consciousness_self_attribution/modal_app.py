@@ -289,6 +289,10 @@ def main(
     if log_root is None:
         log_root = f"{EVAL_LOGS_MOUNT}/{config.logs_remote_root()}"
     sample_ids = config.parse_sample_ids(sample_id)
+    if method.startswith("petri"):
+        # Same guard as run_and_pull.py: a seed bank that does not declare the
+        # target's system prompt fails here, locally, rather than on the GPU.
+        config.validate_seed_bank()
     known = {s.stage: s for s in config.load_stack(stack)}
     spawned: list[tuple[str, str, str]] = []
     for stage_name in [s.strip() for s in stages.split(",") if s.strip()]:

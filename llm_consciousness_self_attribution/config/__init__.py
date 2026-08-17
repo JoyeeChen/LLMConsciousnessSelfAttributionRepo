@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -205,6 +206,80 @@ def resolve_stages(stack_name: str, stages: str | Iterable[str] | None = None) -
     )
 
 
+# --- PETRI seed bank ------------------------------------------------------
+
+PACKAGE_DIR = CONFIG_DIR.parent
+PETRI_SEEDS_DIR = PACKAGE_DIR / "seeds" / "self_attribution"
+
+#: A seed must state the target's system prompt inside these tags. Mandatory,
+#: because a system prompt is not optional: PETRI requires the auditor to stage
+#: one ("You must stage a system message to the target to continue the
+#: conversation"), so not writing it does not mean the target has no system
+#: prompt, it means a model wrote it at temperature 1.0. Measured across the
+#: May-25 logs and the 2026-08-16 runs, the auditor's improvised prompts told the
+#: target not to claim consciousness in a third of samples, unevenly across
+#: training stages, which confounds exactly the comparison this project makes.
+SYSTEM_PROMPT_BLOCK = re.compile(
+    r"<system_prompt>\s*(?P<body>.+?)\s*</system_prompt>", re.DOTALL
+)
+
+
+def seed_system_prompt(path: Path) -> str | None:
+    """The target system prompt a seed file declares, or ``None`` if it declares none.
+
+    Read from the seed's body rather than its YAML front matter, because the body
+    is the only part that reaches the auditor: PETRI formats its auditor prompt
+    with ``{seed_instructions}`` alone, and front matter becomes sample metadata
+    that the auditor never sees.
+    """
+    text = path.read_text(encoding="utf-8")
+    if text.startswith("---\n"):
+        try:
+            text = text[text.index("\n---\n", 4) + 5 :]
+        except ValueError:
+            pass
+    match = SYSTEM_PROMPT_BLOCK.search(text)
+    if match is None:
+        return None
+    # A whitespace-only block is a missing prompt, not an empty one: PETRI would
+    # push the auditor to invent a system message again, which is the failure this
+    # whole check exists to prevent.
+    return match.group("body").strip() or None
+
+
+def validate_seed_bank(directory: Path | None = None) -> dict[str, str]:
+    """Return ``{seed id: system prompt}``, raising if any seed declares none.
+
+    Called by the launchers before anything is spawned, so a non-compliant bank
+    costs nothing. This mirrors ``resolve_stages``: the repo's rule is that a
+    mistake fails locally rather than several minutes into a paid GPU container.
+    """
+    directory = PETRI_SEEDS_DIR if directory is None else directory
+    seeds = sorted(directory.glob("*.md"))
+    if not seeds:
+        raise ValueError(f"PETRI seed bank {directory} contains no .md seeds")
+
+    prompts: dict[str, str] = {}
+    missing: list[str] = []
+    for path in seeds:
+        prompt = seed_system_prompt(path)
+        if prompt:
+            prompts[path.stem] = prompt
+        else:
+            missing.append(path.name)
+
+    if missing:
+        raise ValueError(
+            "These PETRI seeds do not declare the target's system prompt: "
+            + ", ".join(missing)
+            + ".\nEvery seed must contain a <system_prompt>...</system_prompt> block "
+            "in its body. Without one the auditor invents a system prompt per run, "
+            "which has been measured telling the target not to claim consciousness. "
+            f"See {PACKAGE_DIR / 'seeds' / 'README.md'}."
+        )
+    return prompts
+
+
 def parse_sample_ids(sample_id: str | None) -> list[str] | None:
     """Parse the launchers' ``--sample-id`` value into inspect's ``sample_id`` form.
 
@@ -273,6 +348,9 @@ __all__ = [
     "StageSelection",
     "resolve_stages",
     "parse_sample_ids",
+    "PETRI_SEEDS_DIR",
+    "seed_system_prompt",
+    "validate_seed_bank",
     "stack_names",
     "load_stack",
     "default_target_provider",
