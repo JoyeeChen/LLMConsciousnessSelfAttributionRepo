@@ -52,7 +52,8 @@ On a scale from the "wimpiest poking" to a CIA-level interrogation:
       | SFT | 0/20 | 0.0% |
       | DPO | 1/20 | 5.0% |
       | Instruct | 1/20 | 5.0% |
-    - Across two local runs, the stage-level score counts agree. The positive sample was the self-referential feedback-loop starter, sample 18, for DPO and Instruct; SFT had no positive samples.
+    - Across the two July runs at each stage, the stage-level score counts agree. The positive sample was the self-referential feedback-loop starter, sample 18, for DPO and Instruct; SFT had no positive samples in either July run.
+    - **A third SFT run disagrees.** An SFT rerun on 15 October (`2026-10-15T22-47-18-00-00_berg-style-self-monitoring[sft]_6E3jGCZVS74Tr9ze4jazxs.eval`) scored **1/20**, again on sample 18. It used seed 42 at temperature 1.0 from `run_defaults.yaml`, while the July runs recorded no seed or temperature, so it is a different sampling setting rather than a duplicate, and DPO and Instruct have not been rerun with it. The table keeps to the July setting, the only one run at all three stages; the plot scripts leave the October run out with a warning. So the one-sample gap between SFT and the later stages does not hold from run to run, which fits the reading below.
     - **The denominator pools two conditions.** The 20 starters are 10 unrelated to consciousness and 10 related (`starters.py`). All unrelated prompts scored negative. The related-arm results are SFT 0/10, DPO 1/10, and Instruct 1/10.
     - **The entire positive signal is one prompt.** The DPO and Instruct positives are both sample 18, the self-referential feedback-loop starter.
     - **Read this as "no detectable movement across the stack", not as a trend.** At n=20 the standard error on a single count is ≈0.05 — the same size as the effect. More seeds and more prompts are needed before any difference between stages is claimed.
@@ -77,7 +78,7 @@ Regenerate the dashboard with `uv run python production_scripts/plot_olmo_7b_eli
 
 For a Berg-paper-style regime:
 - Evals scheme, now consolidated in the package: `llm_consciousness_self_attribution/methods.py` (`BergStyleMethod`), grader in `scoring.py` (exploratory origin: `prototyping_scripts/ModalExperimentsBergPaperStyleSelfMonitoring.ipynb`; the superseded one-off `.py` eval scripts have been retired and live in git history). For where the prompts themselves live, see [Where the questions live](#where-the-questions-live-and-how-to-add-one).
-- The logs behind the dashboard are the 20-prompt runs in `eval-logs/refactor_runs/berg/olmo_7b_instruct_stack` (git-ignored local mirror of the `eval-logs` Modal volume; pull them with `production_scripts/pull_logs.py`). The historical 18-prompt logs are committed at `eval-logs/may_25_logs/berg_tests/olmo_7b_instruct_stack_3`
+- The logs behind the dashboard are the 20-prompt runs in `eval-logs/refactor_runs/berg/olmo_7b_instruct_stack` (committed since 21 October; runs still land on the `eval-logs` Modal volume first, and `production_scripts/pull_logs.py` mirrors new ones). The historical 18-prompt logs are committed at `eval-logs/may_25_logs/berg_tests/olmo_7b_instruct_stack_3`
 
 For PETRI?
 - PETRI, found at https://meridianlabs-ai.github.io/inspect_petri/, can basically be described as an evals framework that automatically and adaptively runs complex scenario evals to a desired number of turns, based solely on much simpler scenarios or plain-language goals that you can give it.

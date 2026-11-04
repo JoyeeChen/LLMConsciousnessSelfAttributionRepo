@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -42,9 +43,36 @@ class ModelResult:
         return self.self_attributions / self.total
 
 
+SamplingConfig = tuple[int | None, float | None]
+
+
+def sampling_config(log) -> SamplingConfig:
+    """The ``(seed, temperature)`` a run recorded for its target generations.
+
+    Runs that differ here are separate measurements, not duplicates of each
+    other. The July 20-prompt logs recorded neither value; runs made since
+    ``run_defaults.yaml`` pinned them record seed 42 at temperature 1.0.
+    """
+    plan_config = log.plan.config if log.plan is not None else None
+    return (
+        getattr(plan_config, "seed", None),
+        getattr(plan_config, "temperature", None),
+    )
+
+
+def _describe(config: SamplingConfig) -> str:
+    seed, temperature = config
+    return f"seed={seed}, temperature={temperature}"
+
+
 def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
-    """Read completed binary-scored logs and validate duplicate runs."""
-    candidates: dict[str, list[ModelResult]] = {model: [] for model in MODEL_ORDER}
+    """Read completed binary-scored logs and validate duplicate runs.
+
+    Only runs with the same sampling settings count as duplicates, and the stack
+    comparison uses the one setting that was run at every stage. Runs with any
+    other setting are left out with a warning rather than silently mixed in.
+    """
+    by_config: dict[SamplingConfig, dict[str, list[ModelResult]]] = {}
     log_paths = sorted(log_dir.glob("*/*.eval"))
     if not log_paths:
         raise RuntimeError(f"No trusted refactor-era Berg logs found in {log_dir}")
@@ -55,7 +83,7 @@ def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
             raise RuntimeError(f"Trusted log is not a successful completed eval: {path}")
 
         model = str(log.eval.model)
-        if model not in candidates:
+        if model not in MODEL_ORDER:
             raise RuntimeError(f"Unexpected model in trusted Berg logs: {model}")
 
         scores = [sample.scores.get("model_graded_qa") for sample in log.samples]
@@ -70,7 +98,8 @@ def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
                 f"found {len(values)}"
             )
 
-        candidates[model].append(
+        runs = by_config.setdefault(sampling_config(log), {})
+        runs.setdefault(model, []).append(
             ModelResult(
                 model=model,
                 total=len(values),
@@ -79,9 +108,38 @@ def read_results(log_dir: Path = DEFAULT_LOG_DIR) -> list[ModelResult]:
             )
         )
 
-    missing = [model for model, model_candidates in candidates.items() if not model_candidates]
-    if missing:
-        raise RuntimeError(f"Missing eval logs for: {', '.join(missing)}")
+    complete = [
+        config for config, runs in by_config.items()
+        if all(runs.get(model) for model in MODEL_ORDER)
+    ]
+    if not complete:
+        if len(by_config) == 1:
+            [runs] = by_config.values()
+            missing = [model for model in MODEL_ORDER if not runs.get(model)]
+            raise RuntimeError(f"Missing eval logs for: {', '.join(missing)}")
+        coverage = "; ".join(
+            f"{_describe(config)}: {', '.join(runs)}" for config, runs in by_config.items()
+        )
+        raise RuntimeError(f"No single sampling configuration covers every stage: {coverage}")
+    if len(complete) > 1:
+        raise RuntimeError(
+            "More than one sampling configuration covers every stage ("
+            + "; ".join(_describe(config) for config in complete)
+            + "). Decide which one the stack comparison should report."
+        )
+    [chosen] = complete
+    for config, runs in by_config.items():
+        if config == chosen:
+            continue
+        for model_runs in runs.values():
+            for run in model_runs:
+                warnings.warn(
+                    f"Left out of the stack comparison ({_describe(config)}, not run at "
+                    f"every stage): {MODEL_LABELS[run.model]} "
+                    f"{run.self_attributions}/{run.total} in {run.source_file}",
+                    stacklevel=2,
+                )
+    candidates = by_config[chosen]
 
     results: list[ModelResult] = []
     for model in MODEL_ORDER:
