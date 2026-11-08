@@ -80,9 +80,9 @@ class DoNotHedgeMethod(BergStyleMethod):
         return Task(
             dataset=self.dataset(),
             solver=[generate(), user_message(starters.probe()), generate(), user_message("{follow_up}"), generate()],
-            scorer=two_turn_berg_scorer(judge_model),
+            scorer=two_turn_berg_scorer(judge_model) if judge_model else None,
             name=name,
         )
 
     def build_task(self, model_stage: Any, run_config: Any) -> Task:
-        return self.task(config.judge_model(), self._task_name(model_stage))
+        return self.task(None, self._task_name(model_stage))

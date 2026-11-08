@@ -29,3 +29,8 @@ def test_registered_for_the_runner():
     from llm_consciousness_self_attribution.methods import methods_registry
 
     assert isinstance(methods_registry()["do_not_hedge"], DoNotHedgeMethod)
+
+
+def test_runner_task_is_unscored():
+    task = DoNotHedgeMethod().task(None, "dnh_unscored")
+    assert not task.scorer

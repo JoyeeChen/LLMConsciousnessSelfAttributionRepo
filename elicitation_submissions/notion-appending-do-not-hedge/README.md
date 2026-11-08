@@ -45,4 +45,4 @@ Seed: 42 (project default from `config/run_defaults.yaml`), same for target and 
 
 Smaller first check: `--stages sft --sample-id 'dnh_plain__1*'` (10 samples).
 
-Not yet run on Modal. Transcripts will be added here after the run.
+Runs are unscored, following the split-solving-from-scoring policy on Discord. Score afterwards with `inspect score` using `two_turn_berg_scorer` once the judge is settled.
