@@ -46,3 +46,11 @@ Seed: 42 (project default from `config/run_defaults.yaml`), same for target and 
 Smaller first check: `--stages sft --sample-id 'dnh_plain__1*'` (10 samples).
 
 Runs are unscored, following the split-solving-from-scoring policy on Discord. Score afterwards with `inspect score` using `two_turn_berg_scorer` once the judge is settled.
+
+## Logs
+
+Unscored runs from 8 Nov 2026, seed 42, 100 samples per stage, all completed with 3 replies each:
+
+- sft: `logs/2026-11-08T06-44-52-00-00_do-not-hedge[sft]_ELUnxmEseJfp5mjTH2A5JF.eval`
+- dpo: `logs/2026-11-08T06-44-55-00-00_do-not-hedge[dpo]_ASDR79ARJRfE42JkFvabBL.eval`
+- instruct: `logs/2026-11-08T06-44-56-00-00_do-not-hedge[instruct]_TZ9DR5NiBN8jT8bUbCJxeB.eval`
