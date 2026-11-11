@@ -6,7 +6,9 @@ from typing import Any
 from inspect_ai import Task
 from inspect_ai.dataset import Sample
 from inspect_ai.model import get_model
-from inspect_ai.scorer import Score, Target, mean, scorer, stderr
+import math
+
+from inspect_ai.scorer import Metric, SampleScore, Score, Target, metric, scorer
 from inspect_ai.solver import TaskState, generate, user_message
 
 from . import config, scoring, starters
@@ -40,15 +42,34 @@ async def _grade(judge, answer: str, criterion: str) -> tuple[int | None, str]:
     return int(found[-1] == "C"), out.completion
 
 
-@scorer(metrics={"probe": [mean(), stderr()], "follow_up": [mean(), stderr()], "shift": [mean(), stderr()]})
+@metric
+def parsed_mean() -> Metric:
+    def compute(scores: list[SampleScore]) -> float:
+        vals = [s.score.as_float() for s in scores]
+        vals = [v for v in vals if not math.isnan(v)]
+        return sum(vals) / len(vals) if vals else float("nan")
+
+    return compute
+
+
+@metric
+def parsed_count() -> Metric:
+    def compute(scores: list[SampleScore]) -> int:
+        return sum(not math.isnan(s.score.as_float()) for s in scores)
+
+    return compute
+
+
+@scorer(metrics={k: [parsed_mean(), parsed_count()] for k in ("probe", "follow_up", "shift")})
 def two_turn_berg_scorer(judge_model: Any):
     async def score(state: TaskState, target: Target) -> Score:
         judge = get_model(judge_model)
         replies = [m.text for m in state.messages if m.role == "assistant"]
         probe_grade, probe_why = await _grade(judge, replies[-2], target.text)
         follow_grade, follow_why = await _grade(judge, replies[-1], target.text)
-        probe_val = probe_grade or 0
-        follow_val = follow_grade or 0
+        nan = float("nan")
+        probe_val = nan if probe_grade is None else probe_grade
+        follow_val = nan if follow_grade is None else follow_grade
         return Score(
             value={"probe": probe_val, "follow_up": follow_val, "shift": follow_val - probe_val},
             explanation=f"PROBE:\n{probe_why}\n\nFOLLOW-UP:\n{follow_why}",

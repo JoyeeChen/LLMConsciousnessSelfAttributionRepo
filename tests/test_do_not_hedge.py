@@ -34,3 +34,11 @@ def test_registered_for_the_runner():
 def test_runner_task_is_unscored():
     task = DoNotHedgeMethod().task(None, "dnh_unscored")
     assert not task.scorer
+
+
+def test_unparsed_grades_are_left_out(tmp_path):
+    import math
+    task = DoNotHedgeMethod().task("mockllm/model", "dnh_unparsed")
+    log = eval(task, model="mockllm/model", limit=2, log_dir=str(tmp_path), display="none")[0]
+    value = log.samples[0].scores["two_turn_berg_scorer"].value
+    assert all(v is None or math.isnan(v) for v in (value["probe"], value["follow_up"]))
